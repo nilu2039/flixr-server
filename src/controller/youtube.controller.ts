@@ -41,16 +41,12 @@ export const uploadToYoutube = async (req: Request, res: Response) => {
   updateVideoUploadStatus(uploadVideoId, "started");
 
   // uploadVideoToYoutube(auth, videoDetails, uploadVideoId);
-  res.json({
-    status: "started",
-    uploadId: uploadVideoId,
-  });
+
+  res.sendSuccess({ status: "started", uploadId: uploadVideoId }, 200);
 };
 
 export const uploadStatus = async (req: Request, res: Response) => {
   const uploadId = req.params.uploadId;
   const status = await getVideoUploadStatus(uploadId);
-  res.json({
-    status,
-  });
+  res.sendSuccess({ status }, 200);
 };

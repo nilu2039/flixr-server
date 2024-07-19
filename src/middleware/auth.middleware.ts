@@ -7,7 +7,7 @@ export const checkGoogleAccessToken = async (
   next: NextFunction
 ) => {
   if (!req.user) {
-    res.status(401).json({ error: "User not authenticated" });
+    res.sendError("User not authenticated", 401);
     return;
   }
   if (Date.now() > req.user.googleExpiresIn) {
@@ -16,7 +16,7 @@ export const checkGoogleAccessToken = async (
       req.user.googleAccessToken = credentials.googleAccessToken;
       req.user.googleExpiresIn = credentials.googleExpiresIn;
     } catch (error) {
-      res.status(401).json({ error: "Failed to refresh token" });
+      res.sendError("Failed to refresh token", 401);
       return;
     }
   }
@@ -26,7 +26,7 @@ export const checkGoogleAccessToken = async (
 
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || req.user.role !== "admin") {
-    res.status(403).json({ error: "Unauthorized" });
+    res.sendError("Unauthorized", 403);
     return;
   }
   next();
@@ -34,7 +34,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
 export const isEditor = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || req.user.role !== "editor") {
-    res.status(403).json({ error: "Unauthorized" });
+    res.sendError("Unauthorized", 403);
     return;
   }
   next();
