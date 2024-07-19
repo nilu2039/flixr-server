@@ -1,0 +1,34 @@
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    ports:
+      - ${PORT}:${PORT}
+    command: pm2-runtime start --name=api index.js
+    depends_on:
+      - db
+      - redis
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+
+  db:
+    image: postgres:16.3
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+
+  redis:
+    image: redis:7.2.5
