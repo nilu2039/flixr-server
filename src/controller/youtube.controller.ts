@@ -30,7 +30,7 @@ export const uploadToYoutube = async (req: Request, res: Response) => {
   //   mediaStream: video,
   // };
 
-  // const auth: Express.User = {
+  // const auth: Partial<Express.User >= {
   //   id: req.user.id,
   //   googleAccessToken: req.user.googleAccessToken,
   //   googleRefreshToken: req.user.googleRefreshToken,

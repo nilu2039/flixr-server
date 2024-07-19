@@ -6,16 +6,18 @@ import RedisStore from "connect-redis";
 
 import "./strategies/google";
 import logger from "./lib/logger";
-import authRoutes from "./routes/auth";
-import youtubeRoutes from "./routes/youtube";
+import authRoutes from "./routes/auth.route";
+import youtubeRoutes from "./routes/youtube.route";
 import redisClient from "./lib/redis";
 import env from "./env";
+import { User } from "./db/schema/user.schema";
 
 interface ExpressUser {
   id: number;
   googleAccessToken: string;
   googleRefreshToken: string;
   googleExpiresIn: number;
+  role: User["role"];
 }
 
 declare global {

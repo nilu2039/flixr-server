@@ -2,8 +2,8 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { GOOGLE_SCOPES } from "../constants";
 import env from "../env";
-import { UsersInsertType } from "../db/schema";
 import { UserService } from "../service/user.service";
+import { UsersInsertType } from "src/db/schema/user.schema";
 
 passport.use(
   new GoogleStrategy(
@@ -31,6 +31,7 @@ passport.use(
         googleExpiresIn: user.googleExpiresIn,
         googleRefreshToken: user.googleRefreshToken,
         id: user.id,
+        role: user.role,
       });
     }
   )
@@ -42,6 +43,7 @@ passport.serializeUser((user: Express.User, done) => {
     googleAccessToken: user.googleAccessToken,
     googleRefreshToken: user.googleRefreshToken,
     googleExpiresIn: user.googleExpiresIn,
+    role: user.role,
   };
   done(null, _user);
 });
