@@ -26,6 +26,7 @@ services:
       - DB_PORT=${DB_PORT}
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
+      - DATABASE_URL=${DATABASE_URL}
 
   db:
     image: postgres:16.3

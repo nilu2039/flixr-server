@@ -9,6 +9,7 @@ import logger from "./lib/logger";
 import authRoutes from "./routes/auth";
 import youtubeRoutes from "./routes/youtube";
 import redisClient from "./lib/redis";
+import env from "./env";
 
 export type IUser = {
   id: string;
@@ -25,7 +26,7 @@ declare global {
 
 const main = async () => {
   const app = express();
-  const PORT = process.env.PORT || 4000;
+  const PORT = env.PORT || 4000;
 
   const redisStore = new RedisStore({
     client: redisClient,
@@ -36,12 +37,12 @@ const main = async () => {
     session({
       name: "qid",
       store: redisStore,
-      secret: process.env.SESSION_SECRET!,
+      secret: env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
       cookie: {
         sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        secure: env.NODE_ENV === "production",
       },
     })
   );
