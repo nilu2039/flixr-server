@@ -11,16 +11,16 @@ import youtubeRoutes from "./routes/youtube";
 import redisClient from "./lib/redis";
 import env from "./env";
 
-export type IUser = {
-  id: string;
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
-};
+interface ExpressUser {
+  id: number;
+  googleAccessToken: string;
+  googleRefreshToken: string;
+  googleExpiresIn: number;
+}
 
 declare global {
   namespace Express {
-    interface User extends IUser {}
+    interface User extends ExpressUser {}
   }
 }
 

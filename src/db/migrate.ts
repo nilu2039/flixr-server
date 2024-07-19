@@ -5,7 +5,7 @@ import postgres from "postgres";
 import env from "../env";
 
 const main = async () => {
-  const connection = postgres(env.DATABASE_URL, { max: 1 });
+  const connection = postgres(env.MIGRATION_DATABASE_URL, { max: 1 });
 
   const db = drizzle(connection);
 

@@ -10,11 +10,13 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_CALLBACK_URL: z.string(),
   DB_HOST: z.string(),
+  MIGRATION_DB_HOST: z.string(),
   DB_USER: z.string(),
   DB_PASSWORD: z.string(),
   DB_NAME: z.string(),
   DB_PORT: z.string(),
   DATABASE_URL: z.string(),
+  MIGRATION_DATABASE_URL: z.string(),
   REDIS_HOST: z.string(),
   REDIS_PORT: z.string(),
 });

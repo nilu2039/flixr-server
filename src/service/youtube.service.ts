@@ -5,7 +5,7 @@ import { updateVideoUploadStatus } from "../utils/video";
 
 const youtube = google.youtube("v3");
 
-export const uploadVideo = async (
+export const uploadVideoToYoutube = async (
   auth: Express.User,
   videoDetails: {
     title: string;
@@ -19,9 +19,9 @@ export const uploadVideo = async (
 ): Promise<youtube_v3.Schema$Video | null> => {
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({
-    access_token: auth.accessToken,
-    refresh_token: auth.refreshToken,
-    expiry_date: auth.expiresIn,
+    access_token: auth.googleAccessToken,
+    refresh_token: auth.googleRefreshToken,
+    expiry_date: auth.googleExpiresIn,
   });
   try {
     logger.info("Uploading video");

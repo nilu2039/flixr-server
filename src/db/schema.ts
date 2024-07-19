@@ -1,4 +1,11 @@
-import { pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -13,9 +20,13 @@ export const users = pgTable("users", {
   googleRefreshToken: varchar("google_refresh_token", {
     length: 256,
   }).notNull(),
-  googleExpiresIn: varchar("google_expires_in", { length: 256 }).notNull(),
+  googleExpiresIn: integer("google_expires_in").notNull(),
+  profileUrlImage: text("profile_url_image"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
     .$onUpdate(() => new Date()),
 });
+
+export type UsersInsertType = typeof users.$inferInsert;
+export type User = typeof users.$inferSelect;
