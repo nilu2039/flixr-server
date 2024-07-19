@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: .
+      target: dev
+    ports:
+      - ${PORT}:${PORT}
+    command: pnpm dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - db
+      - redis
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - DB_HOST=${DB_HOST}
+      - MIGRATION_DB_HOST=${MIGRATION_DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DATABASE_URL=${DATABASE_URL}
+      - MIGRATION_DATABASE_URL = ${MIGRATION_DATABASE_URL}
+
+  db:
+    image: postgres:16.3
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+
+  redis:
+    image: redis:7.2.5
+    ports:
+      - ${REDIS_PORT}:${REDIS_PORT}

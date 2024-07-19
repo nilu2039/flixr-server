@@ -1,3 +1,4 @@
+import env from "../env";
 import winston from "winston";
 
 const logger = winston.createLogger({
@@ -9,7 +10,8 @@ const logger = winston.createLogger({
     new winston.transports.File({ filename: "combined.log" }),
   ],
 });
-if (process.env.NODE_ENV !== "production") {
+
+if (env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.simple(),

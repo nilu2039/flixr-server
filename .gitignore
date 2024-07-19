@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dummy/
+db-data/
 
 .env
 .env.local
