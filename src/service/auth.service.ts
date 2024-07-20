@@ -3,6 +3,9 @@ import { Request } from "express";
 import env from "../env";
 import { UserService } from "./user.service";
 import logger from "../lib/logger";
+import db from "../db/db";
+import { eq } from "drizzle-orm";
+import { editors } from "../db/schema";
 
 const oauth2Client = new google.auth.OAuth2(
   env.GOOGLE_CLIENT_ID,
@@ -39,15 +42,29 @@ const AuthService = {
       throw error;
     }
   },
-  getAuthId(req: Request): { adminId: number; editorId: number | null } {
+  async getAuthId(
+    req: Request
+  ): Promise<{ adminId: number; editorId: number | null }> {
     if (!req.user) {
       throw new Error("User not authenticated");
     }
+
     if (req.user.role === "admin") {
       return { adminId: req.user.id, editorId: null };
     }
-    // get admin id
-    return { adminId: req.user.id, editorId: req.user.id };
+
+    const editorWithAdmin = await db.query.editors.findFirst({
+      where: eq(editors.id, req.user.id),
+      with: {
+        admin: { columns: { id: true } },
+      },
+    });
+
+    if (!editorWithAdmin) {
+      throw new Error("User not authenticated");
+    }
+
+    return { adminId: editorWithAdmin.admin.id, editorId: req.user.id };
   },
 };
 

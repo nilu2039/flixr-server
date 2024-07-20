@@ -1,6 +1,10 @@
 import { Router } from "express";
 import passport from "passport";
 import { GOOGLE_SCOPES } from "../constants";
+import { validatePostBody } from "../middleware/validate.middleware";
+import { editorLoginSchema } from "../zod-schema/editor.zod";
+import STATUS_CODES from "../lib/http-status-codes";
+import { IVerifyOptions } from "passport-local";
 
 const router = Router();
 
@@ -11,7 +15,7 @@ router.get(
     accessType: "offline",
     prompt: "consent",
   }),
-  (_, res) => res.send(200)
+  (_, res) => res.sendStatus(STATUS_CODES.OK)
 );
 
 router.get(
@@ -19,6 +23,30 @@ router.get(
   passport.authenticate("google", { failureRedirect: "/login" }),
   (_, res) => {
     res.redirect("http://localhost:3000/dashboard");
+  }
+);
+
+router.post(
+  "/login-editor",
+  validatePostBody(editorLoginSchema),
+  (req, res, next) => {
+    passport.authenticate(
+      "local",
+      (err: any, user: Express.User | false, info: IVerifyOptions) => {
+        if (err) {
+          return next(err);
+        }
+        if (!user) {
+          return res.sendError(info.message, STATUS_CODES.UNAUTHORIZED);
+        }
+        req.logIn(user, (err) => {
+          if (err) {
+            return next(err);
+          }
+          return res.sendSuccess("Logged in successfully", STATUS_CODES.OK);
+        });
+      }
+    )(req, res, next);
   }
 );
 

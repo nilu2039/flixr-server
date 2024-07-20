@@ -1,13 +1,16 @@
+import { eq } from "drizzle-orm";
 import { ReadStream } from "fs";
 import { open, unlink } from "fs/promises";
 import { google } from "googleapis";
 import { DownloaderHelper } from "node-downloader-helper";
 import path from "path";
+import { videos } from "../db/schema";
 import env from "../env";
 import AWSManager from "../lib/aws";
-import { UserService } from "./user.service";
 import logger from "../lib/logger";
 import { updateVideoUploadYoutubeStatus } from "../utils/video";
+import { UserService } from "./user.service";
+import VideoService from "./video.service";
 
 const youtube = google.youtube("v3");
 
@@ -92,6 +95,10 @@ export const YoutubeService = {
             uploadVideoId,
             onSuccess: async () => {
               await unlink(videoPath);
+              await VideoService.updateVideo(
+                { uploadedToYoutube: true },
+                eq(videos.videoId, video.videoId)
+              );
             },
             onFailure: async () => {},
           });
