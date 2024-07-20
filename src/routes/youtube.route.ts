@@ -3,11 +3,19 @@ import {
   uploadToYoutube,
   uploadStatus,
 } from "../controller/youtube.controller";
-import { checkGoogleAccessToken } from "../middleware/auth.middleware";
+import { checkGoogleAccessToken, isAdmin } from "../middleware/auth.middleware";
+import { validatePostBody } from "../middleware/validate.middleware";
+import { uploadToYoutubeSchema } from "../zod-schema/youtube.zod";
 
 const router = Router();
 
-router.get("/upload-youtube", checkGoogleAccessToken, uploadToYoutube);
-router.get("/upload-youtube-status/:uploadId", uploadStatus);
+router.post(
+  "/upload-youtube",
+  checkGoogleAccessToken,
+  isAdmin,
+  validatePostBody(uploadToYoutubeSchema),
+  uploadToYoutube
+);
+router.get("/upload-youtube-status/:uploadId", isAdmin, uploadStatus);
 
 export default router;

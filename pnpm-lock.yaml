@@ -14,9 +14,6 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.616.0
         version: 3.616.0
-      '@aws-sdk/types':
-        specifier: ^3.609.0
-        version: 3.609.0
       '@types/express-session':
         specifier: ^1.18.0
         version: 1.18.0
@@ -53,6 +50,9 @@ importers:
       ioredis:
         specifier: ^5.4.1
         version: 5.4.1
+      node-downloader-helper:
+        specifier: ^2.1.9
+        version: 2.1.9
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1370,6 +1370,11 @@ packages:
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
+
+  node-downloader-helper@2.1.9:
+    resolution: {integrity: sha512-FSvAol2Z8UP191sZtsUZwHIN0eGoGue3uEXGdWIH5228e9KH1YHXT7fN8Oa33UGf+FbqGTQg3sJfrRGzmVCaJA==}
+    engines: {node: '>=14.18'}
+    hasBin: true
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -3304,6 +3309,8 @@ snapshots:
   ms@2.1.3: {}
 
   negotiator@0.6.3: {}
+
+  node-downloader-helper@2.1.9: {}
 
   node-fetch@2.7.0:
     dependencies:

@@ -11,14 +11,34 @@ import {
   VideoUploadPresignedUrl,
   VideoUploadStatusUpdate,
 } from "../zod-schema/video.zod";
+import {
+  getExtensionFromContentType,
+  isSupportedContentType,
+} from "../utils/youtube.util";
 
 export const getUploadPresignedUrl = async (req: Request, res: Response) => {
-  const { contentType, fileName, title, description } =
+  const { contentType, title, description } =
     req.body as VideoUploadPresignedUrl;
+
+  if (!isSupportedContentType(contentType)) {
+    res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
+
+  const fileExtension = getExtensionFromContentType(contentType);
+  if (!fileExtension) {
+    res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
   const { adminId } = AuthService.getAuthId(req);
   const videoId = v4();
+  const fileName = `${videoId}.${fileExtension}`;
   const key = `videos/${videoId}/${fileName}`;
-  const uploadUrl = await AWSManager.getSignedUrlForUpload(key, contentType);
+  const uploadUrl = await AWSManager.getSignedUrlForUpload(
+    key,
+    contentType,
+    env.AWS_VIDEO_UPLOAD_BUCKET
+  );
   await VideoService.createVideo({
     videoId,
     adminId,
@@ -28,6 +48,7 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     title,
     description,
     uploadStatus: "pending",
+    fileName,
   });
   res.sendSuccess({ uploadUrl, videoId });
 };
@@ -37,8 +58,19 @@ export const updateVideoUploadStatus = async (req: Request, res: Response) => {
   if (!objectKey) {
     res.sendError("Invalid object key", STATUS_CODES.BAD_REQUEST);
   }
+  const videoObjectDetails = await AWSManager.getObjectDetails(
+    objectKey,
+    env.AWS_VIDEO_UPLOAD_BUCKET
+  );
+  if (!videoObjectDetails || !videoObjectDetails.exists) {
+    res.sendError("Invalid object key", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
   await VideoService.updateVideo(
-    { uploadStatus: "completed" },
+    {
+      uploadStatus: "completed",
+      fileSize: videoObjectDetails.size,
+    },
     eq(videos.s3ObjectKey, objectKey)
   );
 

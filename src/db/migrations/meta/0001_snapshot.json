@@ -1,6 +1,6 @@
 {
-  "id": "0e1d4c7a-3c85-41d4-8315-4b95c0d285f3",
-  "prevId": "b3e484a4-65d4-4948-90b7-c767fd87af97",
+  "id": "69f0ce93-cc85-4dd6-aa92-739dbddb21dd",
+  "prevId": "918a9f43-5fb9-4e09-a50e-a07d53b7c1f8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -150,17 +150,31 @@
           "primaryKey": false,
           "notNull": true
         },
+        "file_name": {
+          "name": "file_name",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "file_size": {
           "name": "file_size",
-          "type": "text",
+          "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": 0
         },
         "admin_id": {
           "name": "admin_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
+        },
+        "upload_status": {
+          "name": "upload_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'idle'"
         },
         "created_at": {
           "name": "created_at",
@@ -179,7 +193,15 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "videos_s3_object_key_unique": {
+          "name": "videos_s3_object_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "s3_object_key"
+          ]
+        }
+      }
     }
   },
   "enums": {},

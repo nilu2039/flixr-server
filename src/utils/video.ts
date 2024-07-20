@@ -20,9 +20,9 @@ export const updateVideoUploadYoutubeStatus = (
 
 export const getVideoUploadStatus = async (
   id: string
-): Promise<VideoUploadYoutubeStatus> => {
+): Promise<VideoUploadYoutubeStatus | null> => {
   const key = generateVideoUploadRedisKey(id);
   const res = await redisClient.get(key);
-  if (!res) return "uploading";
+  if (!res) return null;
   return res as VideoUploadYoutubeStatus;
 };

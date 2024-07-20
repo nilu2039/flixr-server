@@ -7,7 +7,7 @@ export const checkGoogleAccessToken = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.user || req.user.googleAccessToken || !req.user.googleExpiresIn) {
+  if (!req.user || !req.user.googleAccessToken || !req.user.googleExpiresIn) {
     res.sendError("User not authorized", STATUS_CODES.UNAUTHORIZED);
     return;
   }

@@ -27,6 +27,7 @@
     "googleapis": "^140.0.1",
     "http-status-codes": "^2.3.0",
     "ioredis": "^5.4.1",
+    "node-downloader-helper": "^2.1.9",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "postgres": "^3.4.4",

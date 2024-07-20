@@ -1,5 +1,7 @@
 import {
   GetObjectCommand,
+  HeadObjectCommand,
+  HeadObjectCommandOutput,
   PutObjectCommand,
   PutObjectCommandInput,
   S3Client,
@@ -18,10 +20,11 @@ const s3Client = new S3Client({
 const AWSManager = {
   async getSignedUrlForUpload(
     key: string,
-    contentType: string
+    contentType: string,
+    BucketName: string
   ): Promise<string> {
     const params: PutObjectCommandInput = {
-      Bucket: env.AWS_VIDEO_UPLOAD_BUCKET.trim(),
+      Bucket: BucketName,
       Key: key.trim(),
       ContentType: contentType.trim(),
     };
@@ -31,15 +34,34 @@ const AWSManager = {
     return uploadUrl;
   },
 
-  async getSignedUrlForDownload(key: string): Promise<string> {
+  async getSignedUrlForDownload(
+    key: string,
+    BucketName: string
+  ): Promise<string> {
     const params = {
-      Bucket: env.AWS_VIDEO_UPLOAD_BUCKET,
+      Bucket: BucketName,
       Key: key,
     };
     const command = new GetObjectCommand(params);
     const downloadUrl = await getSignedUrl(s3Client, command);
 
     return downloadUrl;
+  },
+
+  async getObjectDetails(key: string, BucketName: string) {
+    try {
+      const command = new HeadObjectCommand({
+        Bucket: BucketName,
+        Key: key,
+      });
+      const response: HeadObjectCommandOutput = await s3Client.send(command);
+      return {
+        exists: true,
+        size: response.ContentLength,
+      };
+    } catch (error) {
+      return null;
+    }
   },
 };
 

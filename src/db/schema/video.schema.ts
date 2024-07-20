@@ -1,11 +1,12 @@
 import { relations } from "drizzle-orm";
 import {
-  pgTable,
-  uuid,
-  text,
-  varchar,
-  timestamp,
+  bigint,
   integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  varchar,
 } from "drizzle-orm/pg-core";
 import users from "./user.schema";
 
@@ -16,7 +17,8 @@ const videos = pgTable("videos", {
   s3BucketName: varchar("s3_bucket_name", { length: 256 }).notNull(),
   s3ObjectKey: varchar("s3_object_key", { length: 256 }).notNull().unique(),
   contentType: varchar("content_type", { length: 256 }).notNull(),
-  fileSize: text("file_size"),
+  fileName: varchar("file_name", { length: 256 }).notNull(),
+  fileSize: bigint("file_size", { mode: "number" }).notNull().default(0),
   adminId: integer("admin_id").notNull(),
   uploadStatus: text("upload_status", {
     enum: ["idle", "pending", "completed"],
