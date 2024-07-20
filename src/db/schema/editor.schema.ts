@@ -8,6 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import users from "./user.schema";
+import videos from "./video.schema";
 
 const editors = pgTable("editors", {
   id: serial("id").primaryKey(),
@@ -26,11 +27,12 @@ const editors = pgTable("editors", {
 export type EditorsInsertType = typeof editors.$inferInsert;
 export type Editor = typeof editors.$inferSelect;
 
-export const editorsRelations = relations(editors, ({ one }) => ({
+export const editorsRelations = relations(editors, ({ one, many }) => ({
   admin: one(users, {
     fields: [editors.adminId],
     references: [users.id],
   }),
+  videos: many(videos),
 }));
 
 export default editors;

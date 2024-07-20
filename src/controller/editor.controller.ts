@@ -10,15 +10,16 @@ export const createEditor = async (req: Request, res: Response) => {
     return res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
   }
   const password = uuid();
+  const username = uuid();
   const hashedPassword = await argon2.hash(password);
   console.log("PASSWORD: ", password);
   try {
     await EditorService.createEditor({
-      username: uuid(),
+      username,
       password: hashedPassword,
       adminId: req.user.id,
     });
-    res.sendSuccess({ status: "success" });
+    res.sendSuccess({ status: "success", username, password });
   } catch (error) {
     res.sendError("Failed to create editor", STATUS_CODES.BAD_REQUEST);
   }

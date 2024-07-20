@@ -30,7 +30,7 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
     return;
   }
-  const { adminId } = AuthService.getAuthId(req);
+  const { adminId, editorId } = await AuthService.getAuthId(req);
   const videoId = v4();
   const fileName = `${videoId}.${fileExtension}`;
   const key = `videos/${videoId}/${fileName}`;
@@ -49,6 +49,7 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     description,
     uploadStatus: "pending",
     fileName,
+    editorId,
   });
   res.sendSuccess({ uploadUrl, videoId });
 };

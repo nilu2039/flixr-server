@@ -9,6 +9,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import users from "./user.schema";
+import editors from "./editor.schema";
 
 const videos = pgTable("videos", {
   videoId: uuid("video_id").primaryKey(),
@@ -20,12 +21,12 @@ const videos = pgTable("videos", {
   fileName: varchar("file_name", { length: 256 }).notNull(),
   fileSize: bigint("file_size", { mode: "number" }).notNull().default(0),
   adminId: integer("admin_id").notNull(),
+  editorId: integer("editor_id"),
   uploadStatus: text("upload_status", {
     enum: ["idle", "pending", "completed"],
   })
     .notNull()
     .default("idle"),
-  // editorId: integer("editor_id"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
@@ -36,6 +37,10 @@ export const videosRelations = relations(videos, ({ one }) => ({
   admin: one(users, {
     fields: [videos.adminId],
     references: [users.id],
+  }),
+  editor: one(editors, {
+    fields: [videos.editorId],
+    references: [editors.id],
   }),
 }));
 
