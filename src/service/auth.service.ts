@@ -27,12 +27,12 @@ const AuthService = {
       }
       await UserService.updateUser(userId, {
         googleAccessToken: credentials.access_token,
-        googleExpiresIn: Date.now() + (credentials.expiry_date || 3600000),
+        googleExpiresIn: Date.now() + (credentials.expiry_date ?? 3600000),
       });
 
       return {
         googleAccessToken: credentials.access_token,
-        googleExpiresIn: Date.now() + (credentials.expiry_date || 3600000),
+        googleExpiresIn: Date.now() + (credentials.expiry_date ?? 3600000),
       };
     } catch (error) {
       console.error("Error refreshing access token", error);

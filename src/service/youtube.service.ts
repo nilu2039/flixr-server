@@ -1,6 +1,6 @@
 import { ReadStream } from "fs";
-import { open } from "fs/promises";
-import { google, youtube_v3 } from "googleapis";
+import { open, unlink } from "fs/promises";
+import { google } from "googleapis";
 import { DownloaderHelper } from "node-downloader-helper";
 import path from "path";
 import env from "../env";
@@ -86,11 +86,15 @@ export const YoutubeService = {
             googleExpiresIn: userWithVideo.googleExpiresIn,
           };
 
-          YoutubeService.uploadVideoToYoutube(
+          YoutubeService.uploadVideoToYoutube({
             auth,
             videoDetails,
-            uploadVideoId
-          );
+            uploadVideoId,
+            onSuccess: async () => {
+              await unlink(videoPath);
+            },
+            onFailure: async () => {},
+          });
         } catch (error) {
           updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
           throw error;
@@ -102,8 +106,14 @@ export const YoutubeService = {
     }
   },
 
-  async uploadVideoToYoutube(
-    auth: Partial<Express.User>,
+  async uploadVideoToYoutube({
+    auth,
+    uploadVideoId,
+    videoDetails,
+    onSuccess = () => {},
+    onFailure = () => {},
+  }: {
+    auth: Partial<Express.User>;
     videoDetails: {
       title: string;
       description: string;
@@ -111,9 +121,12 @@ export const YoutubeService = {
       categoryId: string;
       privacyStatus: string;
       mediaStream: ReadStream;
-    },
-    uploadVideoId: string
-  ): Promise<youtube_v3.Schema$Video | null> {
+    };
+    onSuccess: () => void;
+    onFailure: () => void;
+    uploadVideoId: string;
+  }) {
+    console.log("AUTH: ", auth);
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({
       access_token: auth.googleAccessToken,
@@ -143,10 +156,12 @@ export const YoutubeService = {
       });
       logger.info("Video uploaded", res.data.id);
       updateVideoUploadYoutubeStatus(uploadVideoId, "completed");
+      onSuccess();
       return res.data;
     } catch (error) {
       logger.error("Error uploading video", error);
       updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
+      onFailure();
       return null;
     }
   },
