@@ -21,7 +21,6 @@ export const uploadToYoutube = async (req: Request, res: Response) => {
     });
     res.sendSuccess({ status: "started", uploadId: uploadVideoId });
   } catch (error) {
-    console.log("MAIN ERROR: ", error);
     res.sendError(error.message, STATUS_CODES.BAD_REQUEST);
   }
 };
