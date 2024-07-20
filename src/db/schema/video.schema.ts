@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   integer,
   pgTable,
   text,
@@ -27,6 +28,7 @@ const videos = pgTable("videos", {
   })
     .notNull()
     .default("idle"),
+  uploadedToYoutube: boolean("uploaded_to_youtube").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()
