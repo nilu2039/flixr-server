@@ -1,56 +1,37 @@
 import { Request, Response } from "express";
-// import { createReadStream } from "fs";
-// import path from "path";
-import {
-  generateVideoUploadId,
-  getVideoUploadStatus,
-  updateVideoUploadStatus,
-} from "../utils/video";
-import logger from "../lib/logger";
-// import { uploadVideoToYoutube } from "../service/youtube.service";
+import { UploadToYoutube } from "../zod-schema/youtube.zod";
+import STATUS_CODES from "../lib/http-status-codes";
+import { generateVideoUploadId, getVideoUploadStatus } from "../utils/video";
+import { YoutubeService } from "../service/youtube.service";
 
 export const uploadToYoutube = async (req: Request, res: Response) => {
   if (!req.user) {
-    logger.error("User not authenticated");
-    res.status(401).send("User not authenticated");
-    return;
+    return res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
   }
-
-  //read video file from file system
-
-  // const videoPath = path.join(__dirname, "..", "dummy", "video.mp4");
-  // const video = createReadStream(videoPath);
-
-  // const videoDetails = {
-  //   title: "Test video",
-  //   description: "Test video description",
-  //   tags: ["test", "video"],
-  //   categoryId: "22",
-  //   privacyStatus: "private",
-  //   mediaStream: video,
-  // };
-
-  // const auth: Express.User = {
-  //   id: req.user.id,
-  //   googleAccessToken: req.user.googleAccessToken,
-  //   googleRefreshToken: req.user.googleRefreshToken,
-  //   googleExpiresIn: req.user.googleExpiresIn,
-  // };
+  const { videoId, visibility } = req.body as UploadToYoutube;
 
   const uploadVideoId = generateVideoUploadId();
-  updateVideoUploadStatus(uploadVideoId, "started");
 
-  // uploadVideoToYoutube(auth, videoDetails, uploadVideoId);
-  res.json({
-    status: "started",
-    uploadId: uploadVideoId,
-  });
+  try {
+    await YoutubeService.prepareVideoForUpload({
+      userId: req.user.id,
+      videoId,
+      visibility,
+      uploadVideoId,
+    });
+    res.sendSuccess({ status: "started", uploadId: uploadVideoId });
+  } catch (error) {
+    console.log("MAIN ERROR: ", error);
+    res.sendError(error.message, STATUS_CODES.BAD_REQUEST);
+  }
 };
 
 export const uploadStatus = async (req: Request, res: Response) => {
   const uploadId = req.params.uploadId;
   const status = await getVideoUploadStatus(uploadId);
-  res.json({
-    status,
-  });
+  if (!status) {
+    res.sendError("Upload not found", STATUS_CODES.NOT_FOUND);
+    return;
+  }
+  res.sendSuccess({ status });
 };

@@ -19,6 +19,10 @@ const EnvSchema = z.object({
   MIGRATION_DATABASE_URL: z.string(),
   REDIS_HOST: z.string(),
   REDIS_PORT: z.string(),
+  AWS_VIDEO_UPLOAD_BUCKET: z.string(),
+  AWS_REGION: z.string(),
+  AWS_ACCESS_KEY: z.string(),
+  AWS_SECRET_ACCESS_KEY: z.string(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;

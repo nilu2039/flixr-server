@@ -1,4 +1,4 @@
-export type VideoUploadStatus =
+export type VideoUploadYoutubeStatus =
   | "started"
   | "uploading"
   | "completed"

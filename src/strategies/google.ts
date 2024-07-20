@@ -2,7 +2,6 @@ import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { GOOGLE_SCOPES } from "../constants";
 import env from "../env";
-import { UsersInsertType } from "../db/schema";
 import { UserService } from "../service/user.service";
 
 passport.use(
@@ -14,7 +13,7 @@ passport.use(
       scope: GOOGLE_SCOPES,
     },
     async (accessToken, refreshToken, profile, done) => {
-      const useObj: UsersInsertType = {
+      const user = await UserService.createUser({
         googleId: profile.id,
         googleAccessToken: accessToken,
         googleRefreshToken: refreshToken,
@@ -24,13 +23,16 @@ passport.use(
         name: profile.displayName,
         username: profile.displayName,
         role: "admin",
-      };
-      const user = await UserService.createUser(useObj);
+      });
+      if (!user) {
+        return done(null, false);
+      }
       done(null, {
         googleAccessToken: user.googleAccessToken,
         googleExpiresIn: user.googleExpiresIn,
         googleRefreshToken: user.googleRefreshToken,
         id: user.id,
+        role: user.role,
       });
     }
   )
@@ -42,6 +44,7 @@ passport.serializeUser((user: Express.User, done) => {
     googleAccessToken: user.googleAccessToken,
     googleRefreshToken: user.googleRefreshToken,
     googleExpiresIn: user.googleExpiresIn,
+    role: user.role,
   };
   done(null, _user);
 });

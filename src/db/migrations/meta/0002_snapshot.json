@@ -1,6 +1,6 @@
 {
-  "id": "918a9f43-5fb9-4e09-a50e-a07d53b7c1f8",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "5165c2d5-d841-4f45-a662-955b404a476c",
+  "prevId": "69f0ce93-cc85-4dd6-aa92-739dbddb21dd",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -80,7 +80,8 @@
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -146,6 +147,12 @@
         },
         "content_type": {
           "name": "content_type",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "file_name": {
+          "name": "file_name",
           "type": "varchar(256)",
           "primaryKey": false,
           "notNull": true

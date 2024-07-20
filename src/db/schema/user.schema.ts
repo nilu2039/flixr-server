@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   integer,
   pgTable,
@@ -6,8 +7,9 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import videos from "./video.schema";
 
-export const users = pgTable("users", {
+const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: varchar("username", { length: 256 }).notNull().unique(),
   name: varchar("name", { length: 256 }).notNull(),
@@ -28,5 +30,11 @@ export const users = pgTable("users", {
     .$onUpdate(() => new Date()),
 });
 
+export const usersRelations = relations(users, ({ many }) => ({
+  videos: many(videos),
+}));
+
 export type UsersInsertType = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+
+export default users;

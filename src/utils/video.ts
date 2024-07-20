@@ -1,6 +1,6 @@
 import { REDIS_UPLOAD_ID_PREFIX } from "../constants";
 import redisClient from "../lib/redis";
-import { VideoUploadStatus } from "../types/video.type";
+import { VideoUploadYoutubeStatus } from "../types/video.type";
 import { v4 } from "uuid";
 
 export const generateVideoUploadId = () => {
@@ -11,18 +11,18 @@ export const generateVideoUploadRedisKey = (id: string) => {
   return `${REDIS_UPLOAD_ID_PREFIX}${id}`;
 };
 
-export const updateVideoUploadStatus = (
+export const updateVideoUploadYoutubeStatus = (
   id: string,
-  status: VideoUploadStatus
+  status: VideoUploadYoutubeStatus
 ) => {
   redisClient.set(generateVideoUploadRedisKey(id), status);
 };
 
 export const getVideoUploadStatus = async (
   id: string
-): Promise<VideoUploadStatus> => {
+): Promise<VideoUploadYoutubeStatus | null> => {
   const key = generateVideoUploadRedisKey(id);
   const res = await redisClient.get(key);
-  if (!res) return "uploading";
-  return res as VideoUploadStatus;
+  if (!res) return null;
+  return res as VideoUploadYoutubeStatus;
 };
