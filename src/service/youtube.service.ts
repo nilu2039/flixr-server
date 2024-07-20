@@ -36,6 +36,10 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
+      if (userWithVideo.videos[0].uploadedToYoutube) {
+        throw new Error("Video already uploaded to youtube");
+      }
+
       const videoUrl = await AWSManager.getSignedUrlForDownload(
         userWithVideo.videos[0].s3ObjectKey,
         env.AWS_VIDEO_UPLOAD_BUCKET.trim()
