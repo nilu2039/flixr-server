@@ -8,6 +8,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import videos from "./video.schema";
+import editors from "./editor.schema";
 
 const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -32,6 +33,7 @@ const users = pgTable("users", {
 
 export const usersRelations = relations(users, ({ many }) => ({
   videos: many(videos),
+  editors: many(editors),
 }));
 
 export type UsersInsertType = typeof users.$inferInsert;

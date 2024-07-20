@@ -5,11 +5,14 @@ import passport from "passport";
 import RedisStore from "connect-redis";
 
 import "./strategies/google";
+import "./strategies/local";
+
 import logger from "./lib/logger";
 import authRoutes from "./routes/auth.route";
 import youtubeRoutes from "./routes/youtube.route";
 import videoRoutes from "./routes/video.route";
 import redisClient from "./lib/redis";
+import editorRoutes from "./routes/editor.route";
 import env from "./env";
 import { User } from "./db/schema/user.schema";
 import { responseMiddleware } from "./middleware/response.middleware";
@@ -58,6 +61,7 @@ const main = async () => {
   app.use(responseMiddleware);
 
   app.use("/api/auth", authRoutes);
+  app.use("/api", editorRoutes);
   app.use("/api", youtubeRoutes);
   app.use("/api", videoRoutes);
 

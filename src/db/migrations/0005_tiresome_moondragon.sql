@@ -1,0 +1,1 @@
+ALTER TABLE "editors" ALTER COLUMN "name" DROP NOT NULL;
