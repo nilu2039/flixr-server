@@ -1,10 +1,21 @@
 import { z } from "zod";
 
-export const videoUploadPresignedUrlSchema = z.object({
+export const videoUploadPresignedBodySchema = z.object({
   fileName: z.string(),
   contentType: z.string(),
+  title: z.string(),
+  description: z.string(),
 });
 
 export type VideoUploadPresignedUrl = z.infer<
-  typeof videoUploadPresignedUrlSchema
+  typeof videoUploadPresignedBodySchema
+>;
+
+export const VideoUploadStatusUpdateSchema = z.object({
+  objectKey: z.string(),
+  fileSize: z.number(),
+});
+
+export type VideoUploadStatusUpdate = z.infer<
+  typeof VideoUploadStatusUpdateSchema
 >;

@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { Request } from "express";
 import env from "../env";
 import { UserService } from "./user.service";
 import logger from "../lib/logger";
@@ -10,7 +11,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 const AuthService = {
-  async refreshAccessToken(userId: number) {
+  async refreshGoogleAccessToken(userId: number) {
     try {
       logger.info("Refreshing access token");
       const user = await UserService.getUserById(userId);
@@ -37,6 +38,16 @@ const AuthService = {
       console.error("Error refreshing access token", error);
       throw error;
     }
+  },
+  getAuthId(req: Request): { adminId: number; editorId: number | null } {
+    if (!req.user) {
+      throw new Error("User not authenticated");
+    }
+    if (req.user.role === "admin") {
+      return { adminId: req.user.id, editorId: null };
+    }
+    // get admin id
+    return { adminId: req.user.id, editorId: req.user.id };
   },
 };
 

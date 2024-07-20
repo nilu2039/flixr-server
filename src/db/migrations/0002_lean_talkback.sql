@@ -1,0 +1,1 @@
+ALTER TABLE "videos" ADD COLUMN "upload_status" text DEFAULT 'idle' NOT NULL;

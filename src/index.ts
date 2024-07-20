@@ -16,9 +16,9 @@ import { responseMiddleware } from "./middleware/response.middleware";
 
 interface ExpressUser {
   id: number;
-  googleAccessToken: string;
-  googleRefreshToken: string;
-  googleExpiresIn: number;
+  googleAccessToken?: string;
+  googleRefreshToken?: string;
+  googleExpiresIn?: number;
   role: User["role"];
 }
 

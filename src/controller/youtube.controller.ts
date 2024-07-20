@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import {
   generateVideoUploadId,
   getVideoUploadStatus,
-  updateVideoUploadStatus,
+  updateVideoUploadYoutubeStatus,
 } from "../utils/video";
 import logger from "../lib/logger";
 // import { uploadVideoToYoutube } from "../service/youtube.service";
@@ -38,15 +38,15 @@ export const uploadToYoutube = async (req: Request, res: Response) => {
   // };
 
   const uploadVideoId = generateVideoUploadId();
-  updateVideoUploadStatus(uploadVideoId, "started");
+  updateVideoUploadYoutubeStatus(uploadVideoId, "started");
 
   // uploadVideoToYoutube(auth, videoDetails, uploadVideoId);
 
-  res.sendSuccess({ status: "started", uploadId: uploadVideoId }, 200);
+  res.sendSuccess({ status: "started", uploadId: uploadVideoId });
 };
 
 export const uploadStatus = async (req: Request, res: Response) => {
   const uploadId = req.params.uploadId;
   const status = await getVideoUploadStatus(uploadId);
-  res.sendSuccess({ status }, 200);
+  res.sendSuccess({ status });
 };

@@ -16,11 +16,14 @@ const s3Client = new S3Client({
 });
 
 const AWSManager = {
-  async getSignedUrlForUpload(key: string, contentType: string) {
+  async getSignedUrlForUpload(
+    key: string,
+    contentType: string
+  ): Promise<string> {
     const params: PutObjectCommandInput = {
-      Bucket: env.AWS_VIDEO_UPLOAD_BUCKET,
-      Key: key,
-      ContentType: contentType,
+      Bucket: env.AWS_VIDEO_UPLOAD_BUCKET.trim(),
+      Key: key.trim(),
+      ContentType: contentType.trim(),
     };
     const command = new PutObjectCommand(params);
     const uploadUrl = await getSignedUrl(s3Client, command);
@@ -28,7 +31,7 @@ const AWSManager = {
     return uploadUrl;
   },
 
-  async getSignedUrlForDownload(key: string) {
+  async getSignedUrlForDownload(key: string): Promise<string> {
     const params = {
       Bucket: env.AWS_VIDEO_UPLOAD_BUCKET,
       Key: key,

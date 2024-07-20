@@ -1,7 +1,7 @@
 import { ReadStream } from "fs";
 import { google, youtube_v3 } from "googleapis";
 import logger from "../lib/logger";
-import { updateVideoUploadStatus } from "../utils/video";
+import { updateVideoUploadYoutubeStatus } from "../utils/video";
 
 const youtube = google.youtube("v3");
 
@@ -25,7 +25,7 @@ export const uploadVideoToYoutube = async (
   });
   try {
     logger.info("Uploading video");
-    updateVideoUploadStatus(uploadVideoId, "uploading");
+    updateVideoUploadYoutubeStatus(uploadVideoId, "uploading");
     const res = await youtube.videos.insert({
       auth: oauth2Client,
       part: ["snippet", "status"],
@@ -45,11 +45,11 @@ export const uploadVideoToYoutube = async (
       },
     });
     logger.info("Video uploaded", res.data.id);
-    updateVideoUploadStatus(uploadVideoId, "completed");
+    updateVideoUploadYoutubeStatus(uploadVideoId, "completed");
     return res.data;
   } catch (error) {
     logger.error("Error uploading video", error);
-    updateVideoUploadStatus(uploadVideoId, "failed");
+    updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
     return null;
   }
 };
