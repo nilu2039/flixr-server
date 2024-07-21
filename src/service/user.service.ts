@@ -30,12 +30,27 @@ export const UserService = {
   },
   async getUserById(
     id: number,
-    columns?: Partial<Record<keyof User, boolean>>
+    columns?: Partial<Record<keyof User, boolean>>,
+    withEditors = false
   ): Promise<Partial<User> | null> {
     try {
       const user = await db.query.users.findFirst({
         where: eq(users.id, id),
         ...(columns ? { columns } : {}),
+        ...(withEditors
+          ? {
+              with: {
+                editors: {
+                  columns: {
+                    id: true,
+                    name: true,
+                    role: true,
+                    verified: true,
+                  },
+                },
+              },
+            }
+          : {}),
       });
       if (!user) {
         return null;

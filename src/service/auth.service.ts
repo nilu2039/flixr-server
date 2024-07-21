@@ -17,19 +17,27 @@ const oauth2Client = new google.auth.OAuth2(
 const AuthService = {
   async me(id: number, role: string) {
     if (role === "admin") {
-      const user = await UserService.getUserById(id, {
-        googleAccessToken: false,
-        googleExpiresIn: false,
-        googleRefreshToken: false,
-        googleId: false,
-      });
+      const user = await UserService.getUserById(
+        id,
+        {
+          id: true,
+          name: true,
+          role: true,
+          verified: true,
+          profileUrlImage: true,
+        },
+        true
+      );
       if (!user) {
         throw new Error("User not found");
       }
       return user;
     }
     const editor = await EditorService.getEditorById(id, {
-      password: false,
+      id: true,
+      name: true,
+      role: true,
+      verified: true,
     });
     if (!editor) {
       throw new Error("Editor not found");

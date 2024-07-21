@@ -23,6 +23,7 @@ const EnvSchema = z.object({
   AWS_REGION: z.string(),
   AWS_ACCESS_KEY: z.string(),
   AWS_SECRET_ACCESS_KEY: z.string(),
+  ALLOWED_ORIGINS: z.string(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;
