@@ -5,8 +5,11 @@ import { validatePostBody } from "../middleware/validate.middleware";
 import { editorLoginSchema } from "../zod-schema/editor.zod";
 import STATUS_CODES from "../lib/http-status-codes";
 import { IVerifyOptions } from "passport-local";
+import { me } from "../controller/auth.controller";
 
 const router = Router();
+
+router.get("/me", me);
 
 router.get(
   "/google",

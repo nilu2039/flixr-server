@@ -1,8 +1,7 @@
 import { eq } from "drizzle-orm";
 import db from "../db/db";
 import argon2 from "argon2";
-// import passport from "passport";
-import { editors, EditorsInsertType } from "../db/schema";
+import { editors, EditorsInsertType, Editor } from "../db/schema";
 
 const EditorService = {
   async createEditor(data: EditorsInsertType) {
@@ -21,10 +20,14 @@ const EditorService = {
     }
   },
 
-  async getEditorById(editorId: number) {
+  async getEditorById(
+    editorId: number,
+    columns?: Partial<Record<keyof Editor, boolean>>
+  ) {
     try {
       return await db.query.editors.findFirst({
         where: eq(editors.id, editorId),
+        ...(columns ? { columns } : {}),
       });
     } catch (error) {
       throw error;

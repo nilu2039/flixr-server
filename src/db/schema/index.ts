@@ -14,4 +14,5 @@ export {
   default as editors,
   editorsRelations,
   EditorsInsertType,
+  Editor,
 } from "./editor.schema";

@@ -28,10 +28,14 @@ export const UserService = {
       return null;
     }
   },
-  async getUserById(id: number): Promise<User | null> {
+  async getUserById(
+    id: number,
+    columns?: Partial<Record<keyof User, boolean>>
+  ): Promise<Partial<User> | null> {
     try {
       const user = await db.query.users.findFirst({
         where: eq(users.id, id),
+        ...(columns ? { columns } : {}),
       });
       if (!user) {
         return null;
