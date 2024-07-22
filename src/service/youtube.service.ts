@@ -36,12 +36,24 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
-      if (userWithVideo.videos[0].uploadedToYoutube) {
+      const video = userWithVideo.videos.find(
+        (video) => video.videoId === videoId
+      );
+
+      if (!video || video.uploadStatus !== "completed") {
+        throw new Error("Video not found");
+      }
+
+      if (video.youtubeUploadStatus === "completed") {
         throw new Error("Video already uploaded to youtube");
       }
 
+      if (video.status !== "accepted") {
+        throw new Error("Video not accepted");
+      }
+
       const videoUrl = await AWSManager.getSignedUrlForDownload(
-        userWithVideo.videos[0].s3ObjectKey,
+        video.s3ObjectKey,
         env.AWS_VIDEO_UPLOAD_BUCKET.trim()
       );
 
@@ -49,7 +61,6 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
-      const video = userWithVideo.videos[0];
       const dl = new DownloaderHelper(
         videoUrl,
         path.join(__dirname, "..", "tmp"),
@@ -63,9 +74,6 @@ export const YoutubeService = {
       updateVideoUploadYoutubeStatus(uploadVideoId, "started");
       const videoPath = path.join(__dirname, "..", "tmp", video.fileName);
 
-      dl.on("progress", (progress) => {
-        console.log(progress.progress, progress.total, progress.speed);
-      });
       dl.on("error", (err) => {
         logger.error("Failed to download video 1", err);
         updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
@@ -93,6 +101,11 @@ export const YoutubeService = {
             googleExpiresIn: userWithVideo.googleExpiresIn,
           };
 
+          await VideoService.updateVideo(
+            { youtubeUploadStatus: "pending" },
+            eq(videos.videoId, video.videoId)
+          );
+
           YoutubeService.uploadVideoToYoutube({
             auth,
             videoDetails,
@@ -100,11 +113,16 @@ export const YoutubeService = {
             onSuccess: async () => {
               await unlink(videoPath);
               await VideoService.updateVideo(
-                { uploadedToYoutube: true },
+                { youtubeUploadStatus: "completed" },
                 eq(videos.videoId, video.videoId)
               );
             },
-            onFailure: async () => {},
+            onFailure: async () => {
+              await VideoService.updateVideo(
+                { youtubeUploadStatus: "failed" },
+                eq(videos.videoId, video.videoId)
+              );
+            },
           });
         } catch (error) {
           updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
@@ -137,7 +155,6 @@ export const YoutubeService = {
     onFailure: () => void;
     uploadVideoId: string;
   }) {
-    console.log("AUTH: ", auth);
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({
       access_token: auth.googleAccessToken,

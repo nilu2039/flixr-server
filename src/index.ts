@@ -3,6 +3,7 @@ import express from "express";
 import session from "express-session";
 import passport from "passport";
 import RedisStore from "connect-redis";
+import cors from "cors";
 
 import "./strategies/google";
 import "./strategies/local";
@@ -39,6 +40,13 @@ const main = async () => {
     client: redisClient,
     prefix: "flixr:",
   });
+
+  app.use(
+    cors({
+      origin: env.ALLOWED_ORIGINS,
+      credentials: true,
+    })
+  );
 
   app.use(
     session({

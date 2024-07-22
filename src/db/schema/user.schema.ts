@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   integer,
   pgTable,
   serial,
@@ -20,6 +21,7 @@ const users = pgTable("users", {
     .default("editor"),
   googleId: varchar("google_id", { length: 256 }).notNull().unique(),
   googleAccessToken: varchar("google_access_token", { length: 256 }).notNull(),
+  verified: boolean("verified").notNull().default(true),
   googleRefreshToken: varchar("google_refresh_token", {
     length: 256,
   }).notNull(),

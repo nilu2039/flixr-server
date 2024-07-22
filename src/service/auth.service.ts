@@ -6,6 +6,7 @@ import logger from "../lib/logger";
 import db from "../db/db";
 import { eq } from "drizzle-orm";
 import { editors } from "../db/schema";
+import EditorService from "./editor.service";
 
 const oauth2Client = new google.auth.OAuth2(
   env.GOOGLE_CLIENT_ID,
@@ -14,6 +15,35 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 const AuthService = {
+  async me(id: number, role: "admin" | "editor") {
+    if (role === "admin") {
+      const user = await UserService.getUserById(
+        id,
+        {
+          id: true,
+          name: true,
+          role: true,
+          verified: true,
+          profileUrlImage: true,
+        },
+        true
+      );
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return user;
+    }
+    const editor = await EditorService.getEditorById(id, {
+      id: true,
+      name: true,
+      role: true,
+      verified: true,
+    });
+    if (!editor) {
+      throw new Error("Editor not found");
+    }
+    return editor;
+  },
   async refreshGoogleAccessToken(userId: number) {
     try {
       logger.info("Refreshing access token");

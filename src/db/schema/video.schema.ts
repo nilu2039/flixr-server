@@ -1,7 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
   bigint,
-  boolean,
   integer,
   pgTable,
   text,
@@ -24,11 +23,18 @@ const videos = pgTable("videos", {
   adminId: integer("admin_id").notNull(),
   editorId: integer("editor_id"),
   uploadStatus: text("upload_status", {
-    enum: ["idle", "pending", "completed"],
+    enum: ["idle", "pending", "completed", "failed"],
   })
     .notNull()
     .default("idle"),
-  uploadedToYoutube: boolean("uploaded_to_youtube").notNull().default(false),
+  status: text("status", { enum: ["draft", "accepted", "rejected"] })
+    .notNull()
+    .default("draft"),
+  youtubeUploadStatus: text("youtube_upload_status", {
+    enum: ["draft", "pending", "completed", "failed"],
+  })
+    .notNull()
+    .default("draft"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()

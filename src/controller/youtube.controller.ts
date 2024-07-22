@@ -25,7 +25,7 @@ export const uploadToYoutube = async (req: Request, res: Response) => {
   }
 };
 
-export const uploadStatus = async (req: Request, res: Response) => {
+export const youtubeUploadStatus = async (req: Request, res: Response) => {
   const uploadId = req.params.uploadId;
   const status = await getVideoUploadStatus(uploadId);
   if (!status) {

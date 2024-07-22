@@ -1,6 +1,6 @@
+import { NextFunction, Request, Response } from "express";
 import STATUS_CODES from "../lib/http-status-codes";
 import AuthService from "../service/auth.service";
-import { Request, Response, NextFunction } from "express";
 
 export const checkGoogleAccessToken = async (
   req: Request,
@@ -43,7 +43,7 @@ export const isEditor = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export const idAdminOrEditor = (
+export const idAdminOrEditor = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -51,6 +51,13 @@ export const idAdminOrEditor = (
   if (!req.user || (req.user.role !== "admin" && req.user.role !== "editor")) {
     res.sendError("Unauthorized", STATUS_CODES.FORBIDDEN);
     return;
+  }
+  if (req.user.role === "editor") {
+    const editor = await AuthService.me(req.user.id, "editor");
+    if (!editor.verified) {
+      res.sendError("Unverified editor", STATUS_CODES.FORBIDDEN);
+      return;
+    }
   }
   next();
 };
