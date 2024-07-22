@@ -8,6 +8,7 @@ import STATUS_CODES from "../lib/http-status-codes";
 import AuthService from "../service/auth.service";
 import VideoService from "../service/video.service";
 import {
+  VideoStatus,
   VideoUploadPresignedUrl,
   VideoUploadStatusUpdate,
 } from "../zod-schema/video.zod";
@@ -15,6 +16,7 @@ import {
   getExtensionFromContentType,
   isSupportedContentType,
 } from "../utils/youtube.util";
+import { UserService } from "../service/user.service";
 
 export const getUploadPresignedUrl = async (req: Request, res: Response) => {
   const { contentType, title, description } =
@@ -76,4 +78,29 @@ export const updateVideoUploadStatus = async (req: Request, res: Response) => {
   );
 
   res.sendSuccess({ status: "completed" });
+};
+
+export const updateVideoStatus = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+    return;
+  }
+  const { status, videoId } = req.body as VideoStatus;
+  const user = await UserService.getUserByIdWithVideo(req.user.id, videoId);
+  const video = user?.videos.find((v) => v.videoId === videoId);
+  if (!video) {
+    res.sendError("Video not found", STATUS_CODES.NOT_FOUND);
+    return;
+  }
+
+  try {
+    await VideoService.updateVideo(
+      { status },
+      eq(videos.videoId, video.videoId)
+    );
+    res.sendSuccess({ status });
+  } catch (error) {
+    res.sendError("Status not updated", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
 };

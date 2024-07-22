@@ -36,12 +36,24 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
-      if (userWithVideo.videos[0].uploadedToYoutube) {
+      const video = userWithVideo.videos.find(
+        (video) => video.videoId === videoId
+      );
+
+      if (!video) {
+        throw new Error("Video not found");
+      }
+
+      if (video.uploadedToYoutube) {
         throw new Error("Video already uploaded to youtube");
       }
 
+      if (video.status !== "accepted") {
+        throw new Error("Video not accepted");
+      }
+
       const videoUrl = await AWSManager.getSignedUrlForDownload(
-        userWithVideo.videos[0].s3ObjectKey,
+        video.s3ObjectKey,
         env.AWS_VIDEO_UPLOAD_BUCKET.trim()
       );
 
@@ -49,7 +61,6 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
-      const video = userWithVideo.videos[0];
       const dl = new DownloaderHelper(
         videoUrl,
         path.join(__dirname, "..", "tmp"),

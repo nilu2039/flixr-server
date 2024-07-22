@@ -2,13 +2,15 @@ import { Router } from "express";
 import {
   getUploadPresignedUrl,
   updateVideoUploadStatus,
+  updateVideoStatus,
 } from "../controller/video.controller";
 import { validatePostBody } from "../middleware/validate.middleware";
 import {
-  VideoUploadStatusUpdateSchema,
+  videoUploadStatusUpdateSchema,
   videoUploadPresignedBodySchema,
+  videoStatusSchema,
 } from "../zod-schema/video.zod";
-import { idAdminOrEditor } from "../middleware/auth.middleware";
+import { idAdminOrEditor, isAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -20,8 +22,15 @@ router.post(
 );
 
 router.post(
+  "/update-video-status",
+  isAdmin,
+  validatePostBody(videoStatusSchema),
+  updateVideoStatus
+);
+
+router.post(
   "/update-video-upload-status",
-  validatePostBody(VideoUploadStatusUpdateSchema),
+  validatePostBody(videoUploadStatusUpdateSchema),
   updateVideoUploadStatus
 );
 

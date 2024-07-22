@@ -3,18 +3,19 @@ import { v4 as uuid } from "uuid";
 import argon2 from "argon2";
 import EditorService from "../service/editor.service";
 import STATUS_CODES from "../lib/http-status-codes";
-import { EditorResetPassword } from "../zod-schema/editor.zod";
+import { EditorCreate, EditorResetPassword } from "../zod-schema/editor.zod";
 
 export const createEditor = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
   }
+  const { name } = req.body as EditorCreate;
   const password = uuid();
   const username = uuid();
   const hashedPassword = await argon2.hash(password);
-  console.log("PASSWORD: ", password);
   try {
     await EditorService.createEditor({
+      name,
       username,
       password: hashedPassword,
       adminId: req.user.id,

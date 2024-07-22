@@ -28,6 +28,9 @@ const videos = pgTable("videos", {
   })
     .notNull()
     .default("idle"),
+  status: text("status", { enum: ["draft", "accepted", "rejected"] })
+    .notNull()
+    .default("draft"),
   uploadedToYoutube: boolean("uploaded_to_youtube").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })

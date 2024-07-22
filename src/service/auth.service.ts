@@ -15,7 +15,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 const AuthService = {
-  async me(id: number, role: string) {
+  async me(id: number, role: "admin" | "editor") {
     if (role === "admin") {
       const user = await UserService.getUserById(
         id,
