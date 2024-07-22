@@ -3,6 +3,7 @@ import {
   getUploadPresignedUrl,
   updateVideoUploadStatus,
   updateVideoStatus,
+  getAllVideos,
 } from "../controller/video.controller";
 import { validatePostBody } from "../middleware/validate.middleware";
 import {
@@ -13,6 +14,8 @@ import {
 import { idAdminOrEditor, isAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
+
+router.get("/get-all-videos", idAdminOrEditor, getAllVideos);
 
 router.post(
   "/get-upload-presigned-url",

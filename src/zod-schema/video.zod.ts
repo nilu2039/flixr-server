@@ -11,8 +11,9 @@ export type VideoUploadPresignedUrl = z.infer<
 >;
 
 export const videoUploadStatusUpdateSchema = z.object({
-  objectKey: z.string(),
-  fileSize: z.number(),
+  objectKey: z.string().optional(),
+  videoId: z.string().optional(),
+  failed: z.boolean().optional(),
 });
 
 export type VideoUploadStatusUpdate = z.infer<

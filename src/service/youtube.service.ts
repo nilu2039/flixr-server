@@ -40,11 +40,11 @@ export const YoutubeService = {
         (video) => video.videoId === videoId
       );
 
-      if (!video) {
+      if (!video || video.uploadStatus !== "completed") {
         throw new Error("Video not found");
       }
 
-      if (video.uploadedToYoutube) {
+      if (video.youtubeUploadStatus === "completed") {
         throw new Error("Video already uploaded to youtube");
       }
 
@@ -74,9 +74,6 @@ export const YoutubeService = {
       updateVideoUploadYoutubeStatus(uploadVideoId, "started");
       const videoPath = path.join(__dirname, "..", "tmp", video.fileName);
 
-      dl.on("progress", (progress) => {
-        console.log(progress.progress, progress.total, progress.speed);
-      });
       dl.on("error", (err) => {
         logger.error("Failed to download video 1", err);
         updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
@@ -104,6 +101,11 @@ export const YoutubeService = {
             googleExpiresIn: userWithVideo.googleExpiresIn,
           };
 
+          await VideoService.updateVideo(
+            { youtubeUploadStatus: "pending" },
+            eq(videos.videoId, video.videoId)
+          );
+
           YoutubeService.uploadVideoToYoutube({
             auth,
             videoDetails,
@@ -111,11 +113,16 @@ export const YoutubeService = {
             onSuccess: async () => {
               await unlink(videoPath);
               await VideoService.updateVideo(
-                { uploadedToYoutube: true },
+                { youtubeUploadStatus: "completed" },
                 eq(videos.videoId, video.videoId)
               );
             },
-            onFailure: async () => {},
+            onFailure: async () => {
+              await VideoService.updateVideo(
+                { youtubeUploadStatus: "failed" },
+                eq(videos.videoId, video.videoId)
+              );
+            },
           });
         } catch (error) {
           updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
@@ -148,7 +155,6 @@ export const YoutubeService = {
     onFailure: () => void;
     uploadVideoId: string;
   }) {
-    console.log("AUTH: ", auth);
     const oauth2Client = new google.auth.OAuth2();
     oauth2Client.setCredentials({
       access_token: auth.googleAccessToken,

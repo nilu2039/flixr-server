@@ -57,9 +57,21 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const updateVideoUploadStatus = async (req: Request, res: Response) => {
-  const { objectKey } = req.body as VideoUploadStatusUpdate;
+  const { objectKey, failed, videoId } = req.body as VideoUploadStatusUpdate;
   if (!objectKey) {
+    if (failed) {
+      await VideoService.updateVideo(
+        {
+          uploadStatus: "failed",
+          fileSize: 0,
+        },
+        eq(videos.videoId, videoId ?? "")
+      );
+      res.sendSuccess({ status: "failed" });
+      return;
+    }
     res.sendError("Invalid object key", STATUS_CODES.BAD_REQUEST);
+    return;
   }
   const videoObjectDetails = await AWSManager.getObjectDetails(
     objectKey,
@@ -93,6 +105,11 @@ export const updateVideoStatus = async (req: Request, res: Response) => {
     return;
   }
 
+  if (video.uploadStatus !== "completed") {
+    res.sendError("Video not uploaded", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
+
   try {
     await VideoService.updateVideo(
       { status },
@@ -102,5 +119,41 @@ export const updateVideoStatus = async (req: Request, res: Response) => {
   } catch (error) {
     res.sendError("Status not updated", STATUS_CODES.BAD_REQUEST);
     return;
+  }
+};
+
+export const getAllVideos = async (req: Request, res: Response) => {
+  if (!req.user) {
+    res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+    return;
+  }
+  const { id, role } = req.user;
+
+  if (role === "admin") {
+    try {
+      const allVideos = await VideoService.getAllVideos(eq(videos.adminId, id));
+      res.sendSuccess(allVideos);
+      return;
+    } catch (error) {
+      res.sendError(
+        "Error fetching videos",
+        STATUS_CODES.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  if (role === "editor") {
+    try {
+      const allVideos = await VideoService.getAllVideos(
+        eq(videos.editorId, id)
+      );
+      res.sendSuccess(allVideos);
+      return;
+    } catch (error) {
+      res.sendError(
+        "Error fetching videos",
+        STATUS_CODES.INTERNAL_SERVER_ERROR
+      );
+    }
   }
 };
