@@ -6,6 +6,7 @@ import { editorLoginSchema } from "../zod-schema/editor.zod";
 import STATUS_CODES from "../lib/http-status-codes";
 import { IVerifyOptions } from "passport-local";
 import { me } from "../controller/auth.controller";
+import env from "../env";
 
 const router = Router();
 
@@ -25,7 +26,7 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/login" }),
   (_, res) => {
-    res.redirect("http://localhost:3000/dashboard");
+    res.redirect(env.FE_GOOGLE_REDIRECT_URL);
   }
 );
 
