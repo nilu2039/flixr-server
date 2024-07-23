@@ -65,18 +65,14 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
-      const dl = new DownloaderHelper(
-        videoUrl,
-        path.join(__dirname, "..", "tmp"),
-        {
-          fileName: video.fileName,
-          override: true,
-          removeOnFail: true,
-        }
-      );
+      const dl = new DownloaderHelper(videoUrl, "/tmp", {
+        fileName: video.fileName,
+        override: true,
+        removeOnFail: true,
+      });
 
       updateVideoUploadYoutubeStatus(uploadVideoId, "started");
-      const videoPath = path.join(__dirname, "..", "tmp", video.fileName);
+      const videoPath = path.join("/tmp", video.fileName);
 
       await VideoService.updateVideo(
         { youtubeUploadStatus: "pending" },

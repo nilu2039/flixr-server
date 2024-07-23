@@ -25,7 +25,7 @@ export const UserService = {
         .returning();
       return user[0];
     } catch (error) {
-      return null;
+      throw error;
     }
   },
   async getUserById(
