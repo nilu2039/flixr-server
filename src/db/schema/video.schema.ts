@@ -30,6 +30,7 @@ const videos = pgTable("videos", {
   status: text("status", { enum: ["draft", "accepted", "rejected"] })
     .notNull()
     .default("draft"),
+  uploaderId: integer("uploader_id").notNull(),
   youtubeUploadStatus: text("youtube_upload_status", {
     enum: ["draft", "pending", "completed", "failed"],
   })

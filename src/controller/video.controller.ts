@@ -6,18 +6,18 @@ import env from "../env";
 import AWSManager from "../lib/aws";
 import STATUS_CODES from "../lib/http-status-codes";
 import AuthService from "../service/auth.service";
+import { UserService } from "../service/user.service";
 import VideoService from "../service/video.service";
+import {
+  getExtensionFromContentType,
+  isSupportedContentType,
+} from "../utils/youtube.util";
 import {
   GetAllVideosQuery,
   VideoStatus,
   VideoUploadPresignedUrl,
   VideoUploadStatusUpdate,
 } from "../zod-schema/video.zod";
-import {
-  getExtensionFromContentType,
-  isSupportedContentType,
-} from "../utils/youtube.util";
-import { UserService } from "../service/user.service";
 
 export const getUploadPresignedUrl = async (req: Request, res: Response) => {
   const { contentType, title, description } =
@@ -33,6 +33,11 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
     return;
   }
+
+  if (!req.user) {
+    throw new Error("User not authenticated");
+  }
+
   const { adminId, editorId } = await AuthService.getAuthId(req);
   const videoId = v4();
   const fileName = `${videoId}.${fileExtension}`;
@@ -50,17 +55,17 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     contentType,
     title,
     description,
-    uploadStatus: "pending",
     fileName,
     editorId,
+    uploaderId: req.user.id,
   });
   res.sendSuccess({ uploadUrl, videoId });
 };
 
 export const updateVideoUploadStatus = async (req: Request, res: Response) => {
-  const { objectKey, failed, videoId } = req.body as VideoUploadStatusUpdate;
+  const { objectKey, status, videoId } = req.body as VideoUploadStatusUpdate;
   if (!objectKey) {
-    if (failed) {
+    if (status === "failed") {
       await VideoService.updateVideo(
         {
           uploadStatus: "failed",
@@ -130,21 +135,23 @@ export const getAllVideos = async (req: Request, res: Response) => {
   }
   const { editorId } = req.query as GetAllVideosQuery;
 
-  console.log("editorId", editorId);
   const { id, role } = req.user;
 
   if (role === "admin") {
     try {
       if (!editorId) {
-        const allVideos = await VideoService.getAllVideos(
-          eq(videos.adminId, id)
-        );
+        const allVideos = await VideoService.getAllVideos({
+          where: eq(videos.adminId, id),
+        });
         res.sendSuccess(allVideos);
         return;
       }
-      const allVideos = await VideoService.getAllVideos(
-        and(eq(videos.adminId, id), eq(videos.editorId, parseInt(editorId)))
-      );
+      const allVideos = await VideoService.getAllVideos({
+        where: and(
+          eq(videos.adminId, id),
+          eq(videos.editorId, parseInt(editorId))
+        ),
+      });
       res.sendSuccess(allVideos);
       return;
     } catch (error) {
@@ -157,9 +164,9 @@ export const getAllVideos = async (req: Request, res: Response) => {
 
   if (role === "editor") {
     try {
-      const allVideos = await VideoService.getAllVideos(
-        eq(videos.editorId, id)
-      );
+      const allVideos = await VideoService.getAllVideos({
+        where: eq(videos.editorId, id),
+      });
       res.sendSuccess(allVideos);
       return;
     } catch (error) {

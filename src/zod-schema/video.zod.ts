@@ -9,7 +9,7 @@ export const videoUploadPresignedBodySchema = z.object({
 export const videoUploadStatusUpdateSchema = z.object({
   objectKey: z.string().optional(),
   videoId: z.string().optional(),
-  failed: z.boolean().optional(),
+  status: z.enum(["pending", "failed"]).optional(),
 });
 
 export const videoStatusSchema = z.object({
