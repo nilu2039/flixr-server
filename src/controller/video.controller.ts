@@ -66,15 +66,15 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
 export const updateVideoUploadStatus = async (req: Request, res: Response) => {
   const { objectKey, status, videoId } = req.body as VideoUploadStatusUpdate;
   if (!objectKey) {
-    if (status === "failed") {
+    if (status === "failed" || status === "pending") {
       await VideoService.updateVideo(
         {
-          uploadStatus: "failed",
+          uploadStatus: status,
           fileSize: 0,
         },
         eq(videos.videoId, videoId ?? "")
       );
-      res.sendSuccess({ status: "failed" });
+      res.sendSuccess({ status });
       return;
     }
     res.sendError("Invalid object key", STATUS_CODES.BAD_REQUEST);
