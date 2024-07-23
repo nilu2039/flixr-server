@@ -78,13 +78,26 @@ export const YoutubeService = {
       updateVideoUploadYoutubeStatus(uploadVideoId, "started");
       const videoPath = path.join(__dirname, "..", "tmp", video.fileName);
 
-      dl.on("error", (err) => {
+      await VideoService.updateVideo(
+        { youtubeUploadStatus: "pending" },
+        eq(videos.videoId, video.videoId)
+      );
+
+      dl.on("error", async (err) => {
         logger.error("Failed to download video 1", err);
         updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
+        await VideoService.updateVideo(
+          { youtubeUploadStatus: "failed" },
+          eq(videos.videoId, video.videoId)
+        );
       });
-      dl.start().catch((err) => {
+      dl.start().catch(async (err) => {
         logger.error("Failed to download video 2", err);
         updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
+        await VideoService.updateVideo(
+          { youtubeUploadStatus: "failed" },
+          eq(videos.videoId, video.videoId)
+        );
       });
       dl.on("end", async () => {
         try {
@@ -104,11 +117,6 @@ export const YoutubeService = {
             googleRefreshToken: userWithVideo.googleRefreshToken,
             googleExpiresIn: userWithVideo.googleExpiresIn,
           };
-
-          await VideoService.updateVideo(
-            { youtubeUploadStatus: "pending" },
-            eq(videos.videoId, video.videoId)
-          );
 
           YoutubeService.uploadVideoToYoutube({
             auth,
