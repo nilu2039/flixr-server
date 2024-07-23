@@ -193,7 +193,6 @@ export const getVideoDetails = async (req: Request, res: Response) => {
       res.sendError("Video not found", STATUS_CODES.NOT_FOUND);
       return;
     }
-    console.log("USER: ", req.user.id, video.adminId, video.editorId);
     if (req.user.id !== video.adminId && req.user.id !== video.editorId) {
       res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
       return;
