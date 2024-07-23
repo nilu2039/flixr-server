@@ -14,6 +14,7 @@ import {
 } from "../utils/youtube.util";
 import {
   GetAllVideosQuery,
+  GetVideoDetailsQuery,
   VideoStatus,
   VideoUploadPresignedUrl,
   VideoUploadStatusUpdate,
@@ -175,5 +176,30 @@ export const getAllVideos = async (req: Request, res: Response) => {
         STATUS_CODES.INTERNAL_SERVER_ERROR
       );
     }
+  }
+};
+
+export const getVideoDetails = async (req: Request, res: Response) => {
+  const { videoId } = req.query as GetVideoDetailsQuery;
+
+  if (!req.user) {
+    res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+    return;
+  }
+
+  try {
+    const video = await VideoService.getVideoById(videoId);
+    if (!video) {
+      res.sendError("Video not found", STATUS_CODES.NOT_FOUND);
+      return;
+    }
+    console.log("USER: ", req.user.id, video.adminId, video.editorId);
+    if (req.user.id !== video.adminId && req.user.id !== video.editorId) {
+      res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+      return;
+    }
+    res.sendSuccess(video);
+  } catch (error) {
+    res.sendError("Error fetching video", STATUS_CODES.INTERNAL_SERVER_ERROR);
   }
 };

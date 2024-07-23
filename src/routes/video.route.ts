@@ -4,6 +4,7 @@ import {
   updateVideoUploadStatus,
   updateVideoStatus,
   getAllVideos,
+  getVideoDetails,
 } from "../controller/video.controller";
 import {
   validatePostBody,
@@ -14,6 +15,7 @@ import {
   videoUploadPresignedBodySchema,
   videoStatusSchema,
   getAllVideosQuerySchema,
+  getVideoDetailsQuerySchema,
 } from "../zod-schema/video.zod";
 import { idAdminOrEditor, isAdmin } from "../middleware/auth.middleware";
 
@@ -24,6 +26,13 @@ router.get(
   idAdminOrEditor,
   validateQuery(getAllVideosQuerySchema),
   getAllVideos
+);
+
+router.get(
+  "/get-video-details",
+  idAdminOrEditor,
+  validateQuery(getVideoDetailsQuerySchema),
+  getVideoDetails
 );
 
 router.post(

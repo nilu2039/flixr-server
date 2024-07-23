@@ -21,6 +21,10 @@ export const getAllVideosQuerySchema = z.object({
   editorId: z.string().optional().nullable(),
 });
 
+export const getVideoDetailsQuerySchema = z.object({
+  videoId: z.string(),
+});
+
 export type VideoStatus = z.infer<typeof videoStatusSchema>;
 
 export type VideoUploadPresignedUrl = z.infer<
@@ -32,3 +36,5 @@ export type VideoUploadStatusUpdate = z.infer<
 >;
 
 export type GetAllVideosQuery = z.infer<typeof getAllVideosQuerySchema>;
+
+export type GetVideoDetailsQuery = z.infer<typeof getVideoDetailsQuerySchema>;
