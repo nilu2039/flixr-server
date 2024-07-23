@@ -37,11 +37,18 @@ const AWSManager = {
   async getSignedUrlForDownload(
     key: string,
     BucketName: string
-  ): Promise<string> {
+  ): Promise<string | null> {
     const params = {
       Bucket: BucketName,
       Key: key,
     };
+
+    const objectDetails = await this.getObjectDetails(key, BucketName);
+
+    if (!objectDetails || !objectDetails.exists) {
+      return null;
+    }
+
     const command = new GetObjectCommand(params);
     const downloadUrl = await getSignedUrl(s3Client, command);
 

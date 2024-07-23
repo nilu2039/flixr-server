@@ -29,6 +29,19 @@ router.get(
   }
 );
 
+router.post("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      return res.sendError(
+        "Error logging out",
+        STATUS_CODES.INTERNAL_SERVER_ERROR
+      );
+    }
+  });
+  res.clearCookie("qid");
+  res.sendSuccess("Logged out successfully", STATUS_CODES.OK);
+});
+
 router.post(
   "/login-editor",
   validatePostBody(editorLoginSchema),

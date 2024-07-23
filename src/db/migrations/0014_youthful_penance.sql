@@ -1,0 +1,1 @@
+ALTER TABLE "videos" ALTER COLUMN "uploader_id" DROP DEFAULT;

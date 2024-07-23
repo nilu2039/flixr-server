@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Request, Response } from "express";
 import { v4 } from "uuid";
 import { videos } from "../db/schema";
@@ -6,17 +6,19 @@ import env from "../env";
 import AWSManager from "../lib/aws";
 import STATUS_CODES from "../lib/http-status-codes";
 import AuthService from "../service/auth.service";
+import { UserService } from "../service/user.service";
 import VideoService from "../service/video.service";
-import {
-  VideoStatus,
-  VideoUploadPresignedUrl,
-  VideoUploadStatusUpdate,
-} from "../zod-schema/video.zod";
 import {
   getExtensionFromContentType,
   isSupportedContentType,
 } from "../utils/youtube.util";
-import { UserService } from "../service/user.service";
+import {
+  GetAllVideosQuery,
+  GetVideoDetailsQuery,
+  VideoStatus,
+  VideoUploadPresignedUrl,
+  VideoUploadStatusUpdate,
+} from "../zod-schema/video.zod";
 
 export const getUploadPresignedUrl = async (req: Request, res: Response) => {
   const { contentType, title, description } =
@@ -32,6 +34,11 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
     return;
   }
+
+  if (!req.user) {
+    throw new Error("User not authenticated");
+  }
+
   const { adminId, editorId } = await AuthService.getAuthId(req);
   const videoId = v4();
   const fileName = `${videoId}.${fileExtension}`;
@@ -49,25 +56,25 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     contentType,
     title,
     description,
-    uploadStatus: "pending",
     fileName,
     editorId,
+    uploaderId: req.user.id,
   });
   res.sendSuccess({ uploadUrl, videoId });
 };
 
 export const updateVideoUploadStatus = async (req: Request, res: Response) => {
-  const { objectKey, failed, videoId } = req.body as VideoUploadStatusUpdate;
+  const { objectKey, status, videoId } = req.body as VideoUploadStatusUpdate;
   if (!objectKey) {
-    if (failed) {
+    if (status === "failed" || status === "pending") {
       await VideoService.updateVideo(
         {
-          uploadStatus: "failed",
+          uploadStatus: status,
           fileSize: 0,
         },
         eq(videos.videoId, videoId ?? "")
       );
-      res.sendSuccess({ status: "failed" });
+      res.sendSuccess({ status });
       return;
     }
     res.sendError("Invalid object key", STATUS_CODES.BAD_REQUEST);
@@ -127,11 +134,25 @@ export const getAllVideos = async (req: Request, res: Response) => {
     res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
     return;
   }
+  const { editorId } = req.query as GetAllVideosQuery;
+
   const { id, role } = req.user;
 
   if (role === "admin") {
     try {
-      const allVideos = await VideoService.getAllVideos(eq(videos.adminId, id));
+      if (!editorId) {
+        const allVideos = await VideoService.getAllVideos({
+          where: eq(videos.adminId, id),
+        });
+        res.sendSuccess(allVideos);
+        return;
+      }
+      const allVideos = await VideoService.getAllVideos({
+        where: and(
+          eq(videos.adminId, id),
+          eq(videos.editorId, parseInt(editorId))
+        ),
+      });
       res.sendSuccess(allVideos);
       return;
     } catch (error) {
@@ -144,9 +165,9 @@ export const getAllVideos = async (req: Request, res: Response) => {
 
   if (role === "editor") {
     try {
-      const allVideos = await VideoService.getAllVideos(
-        eq(videos.editorId, id)
-      );
+      const allVideos = await VideoService.getAllVideos({
+        where: eq(videos.editorId, id),
+      });
       res.sendSuccess(allVideos);
       return;
     } catch (error) {
@@ -155,5 +176,30 @@ export const getAllVideos = async (req: Request, res: Response) => {
         STATUS_CODES.INTERNAL_SERVER_ERROR
       );
     }
+  }
+};
+
+export const getVideoDetails = async (req: Request, res: Response) => {
+  const { videoId } = req.query as GetVideoDetailsQuery;
+
+  if (!req.user) {
+    res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+    return;
+  }
+
+  try {
+    const video = await VideoService.getVideoById(videoId);
+    if (!video) {
+      res.sendError("Video not found", STATUS_CODES.NOT_FOUND);
+      return;
+    }
+    console.log("USER: ", req.user.id, video.adminId, video.editorId);
+    if (req.user.id !== video.adminId && req.user.id !== video.editorId) {
+      res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+      return;
+    }
+    res.sendSuccess(video);
+  } catch (error) {
+    res.sendError("Error fetching video", STATUS_CODES.INTERNAL_SERVER_ERROR);
   }
 };
