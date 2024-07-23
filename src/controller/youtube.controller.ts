@@ -27,6 +27,10 @@ export const uploadToYoutube = async (req: Request, res: Response) => {
 
 export const youtubeUploadStatus = async (req: Request, res: Response) => {
   const uploadId = req.params.uploadId;
+  if (!uploadId) {
+    res.sendError("Upload ID is required", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
   const status = await getVideoUploadStatus(uploadId);
   if (!status) {
     res.sendError("Upload not found", STATUS_CODES.NOT_FOUND);

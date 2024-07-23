@@ -44,6 +44,10 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
+      if (video.youtubeUploadStatus === "pending") {
+        throw new Error("Video already uploading to youtube");
+      }
+
       if (video.youtubeUploadStatus === "completed") {
         throw new Error("Video already uploaded to youtube");
       }

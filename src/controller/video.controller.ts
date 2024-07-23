@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Request, Response } from "express";
 import { v4 } from "uuid";
 import { videos } from "../db/schema";
@@ -8,6 +8,7 @@ import STATUS_CODES from "../lib/http-status-codes";
 import AuthService from "../service/auth.service";
 import VideoService from "../service/video.service";
 import {
+  GetAllVideosQuery,
   VideoStatus,
   VideoUploadPresignedUrl,
   VideoUploadStatusUpdate,
@@ -127,11 +128,23 @@ export const getAllVideos = async (req: Request, res: Response) => {
     res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
     return;
   }
+  const { editorId } = req.query as GetAllVideosQuery;
+
+  console.log("editorId", editorId);
   const { id, role } = req.user;
 
   if (role === "admin") {
     try {
-      const allVideos = await VideoService.getAllVideos(eq(videos.adminId, id));
+      if (!editorId) {
+        const allVideos = await VideoService.getAllVideos(
+          eq(videos.adminId, id)
+        );
+        res.sendSuccess(allVideos);
+        return;
+      }
+      const allVideos = await VideoService.getAllVideos(
+        and(eq(videos.adminId, id), eq(videos.editorId, parseInt(editorId)))
+      );
       res.sendSuccess(allVideos);
       return;
     } catch (error) {

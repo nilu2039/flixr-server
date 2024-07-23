@@ -5,17 +5,26 @@ import {
   updateVideoStatus,
   getAllVideos,
 } from "../controller/video.controller";
-import { validatePostBody } from "../middleware/validate.middleware";
+import {
+  validatePostBody,
+  validateQuery,
+} from "../middleware/validate.middleware";
 import {
   videoUploadStatusUpdateSchema,
   videoUploadPresignedBodySchema,
   videoStatusSchema,
+  getAllVideosQuerySchema,
 } from "../zod-schema/video.zod";
 import { idAdminOrEditor, isAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/get-all-videos", idAdminOrEditor, getAllVideos);
+router.get(
+  "/get-all-videos",
+  idAdminOrEditor,
+  validateQuery(getAllVideosQuerySchema),
+  getAllVideos
+);
 
 router.post(
   "/get-upload-presigned-url",
