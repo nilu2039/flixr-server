@@ -13,27 +13,32 @@ passport.use(
       scope: GOOGLE_SCOPES,
     },
     async (accessToken, refreshToken, profile, done) => {
-      const user = await UserService.createUser({
-        googleId: profile.id,
-        googleAccessToken: accessToken,
-        googleRefreshToken: refreshToken,
-        profileUrlImage: profile.photos?.[0].value ?? "",
-        googleExpiresIn: Date.now() + 3600000,
-        email: profile.emails?.[0].value ?? "",
-        name: profile.displayName,
-        username: profile.displayName,
-        role: "admin",
-      });
-      if (!user) {
-        return done(null, false);
+      try {
+        const user = await UserService.createUser({
+          googleId: profile.id,
+          googleAccessToken: accessToken,
+          googleRefreshToken: refreshToken,
+          profileUrlImage: profile.photos?.[0].value ?? "",
+          googleExpiresIn: Date.now() + 3600000,
+          email: profile.emails?.[0].value ?? "",
+          name: profile.displayName,
+          username: profile.displayName,
+          role: "admin",
+        });
+        if (!user) {
+          return done(null, false);
+        }
+        done(null, {
+          googleAccessToken: user.googleAccessToken,
+          googleExpiresIn: user.googleExpiresIn,
+          googleRefreshToken: user.googleRefreshToken,
+          id: user.id,
+          role: user.role,
+        });
+      } catch (error) {
+        console.error("ERROR: ", error);
+        done(error, false);
       }
-      done(null, {
-        googleAccessToken: user.googleAccessToken,
-        googleExpiresIn: user.googleExpiresIn,
-        googleRefreshToken: user.googleRefreshToken,
-        id: user.id,
-        role: user.role,
-      });
     }
   )
 );

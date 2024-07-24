@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
+  bigint,
   boolean,
-  integer,
   pgTable,
   serial,
   text,
@@ -25,7 +25,7 @@ const users = pgTable("users", {
   googleRefreshToken: varchar("google_refresh_token", {
     length: 256,
   }).notNull(),
-  googleExpiresIn: integer("google_expires_in").notNull(),
+  googleExpiresIn: bigint("google_expires_in", { mode: "number" }).notNull(),
   profileUrlImage: text("profile_url_image"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })

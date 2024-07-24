@@ -3,7 +3,7 @@ import {
   createEditor,
   resetEditorPassword,
 } from "../controller/editor.controller";
-import { isAdmin, isEditor } from "../middleware/auth.middleware";
+import { isAdmin } from "../middleware/auth.middleware";
 import { validatePostBody } from "../middleware/validate.middleware";
 import {
   editorCreateSchema,
@@ -20,7 +20,6 @@ router.post(
 );
 router.post(
   "/reset-editor-password",
-  isEditor,
   validatePostBody(editorResetPasswordSchema),
   resetEditorPassword
 );

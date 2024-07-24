@@ -41,6 +41,8 @@ const main = async () => {
     prefix: "flixr:",
   });
 
+  app.set("trust proxy", true);
+
   app.use(
     cors({
       origin: env.ALLOWED_ORIGINS,
@@ -58,6 +60,7 @@ const main = async () => {
       cookie: {
         sameSite: "lax",
         secure: env.NODE_ENV === "production",
+        domain: env.NODE_ENV === "production" ? ".nilanjan.xyz" : undefined,
       },
     })
   );
