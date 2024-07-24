@@ -35,9 +35,18 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-export const isEditor = (req: Request, res: Response, next: NextFunction) => {
+export const isEditor = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   if (!req.user || req.user.role !== "editor") {
     res.sendError("Access forbidden", STATUS_CODES.FORBIDDEN);
+    return;
+  }
+  const editor = await AuthService.me(req.user.id, "editor");
+  if (!editor.verified) {
+    res.sendError("Unverified editor", STATUS_CODES.FORBIDDEN);
     return;
   }
   next();
