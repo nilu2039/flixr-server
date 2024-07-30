@@ -1,1 +1,1 @@
-ALTER TABLE "users" ALTER COLUMN "google_expires_in" SET DATA TYPE bigint;
+ALTER TABLE "users" ALTER COLUMN "google_expires_in" SET DATA TYPE bigint USING google_expires_in::bigint;

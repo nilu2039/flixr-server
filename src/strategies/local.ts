@@ -5,7 +5,7 @@ import EditorService from "../service/editor.service";
 passport.use(
   new LocalStrategy(async (username, password, done) => {
     try {
-      const editor = await EditorService.getEditorByUsername(username);
+      const editor = await EditorService.getEditor({ username });
       if (!editor) {
         return done(null, false, { message: "Incorrect username" });
       }

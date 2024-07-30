@@ -27,6 +27,8 @@ const users = pgTable("users", {
   }).notNull(),
   googleExpiresIn: bigint("google_expires_in", { mode: "number" }).notNull(),
   profileUrlImage: text("profile_url_image"),
+  ytChannelName: text("yt_channel_name").notNull(),
+  ytChannelId: text("yt_channel_id").notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .notNull()

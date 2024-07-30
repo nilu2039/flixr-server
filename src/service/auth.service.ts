@@ -17,32 +17,40 @@ const oauth2Client = new google.auth.OAuth2(
 const AuthService = {
   async me(id: number, role: "admin" | "editor") {
     if (role === "admin") {
-      const user = await UserService.getUserById(
-        id,
-        {
-          id: true,
-          name: true,
-          role: true,
-          verified: true,
-          profileUrlImage: true,
-        },
-        true
-      );
-      if (!user) {
-        throw new Error("User not found");
+      try {
+        const user = await UserService.getUserById(
+          id,
+          {
+            id: true,
+            name: true,
+            role: true,
+            verified: true,
+            profileUrlImage: true,
+            ytChannelName: true,
+          },
+          true
+        );
+        if (!user) {
+          throw new Error("User not found");
+        }
+        return user;
+      } catch (error) {
+        throw error;
       }
-      return user;
     }
-    const editor = await EditorService.getEditorById(id, {
+    const _editor = await EditorService.getEditorById(id, {
       id: true,
       name: true,
       role: true,
       verified: true,
     });
-    if (!editor) {
+    if (!_editor) {
       throw new Error("Editor not found");
     }
-    return editor;
+    return {
+      ..._editor,
+      ytChannelName: _editor.admin.ytChannelName,
+    };
   },
   async refreshGoogleAccessToken(userId: number) {
     try {

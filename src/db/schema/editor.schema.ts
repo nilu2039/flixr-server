@@ -13,6 +13,7 @@ import videos from "./video.schema";
 const editors = pgTable("editors", {
   id: serial("id").primaryKey(),
   username: varchar("username", { length: 256 }).notNull().unique(),
+  email: varchar("email", { length: 256 }).notNull().unique(),
   password: varchar("password", { length: 256 }).notNull(),
   name: varchar("name", { length: 256 }),
   role: varchar("role", { length: 256 }).notNull().default("editor"),

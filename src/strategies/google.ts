@@ -3,6 +3,7 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { GOOGLE_SCOPES } from "../constants";
 import env from "../env";
 import { UserService } from "../service/user.service";
+import { YoutubeService } from "../service/youtube.service";
 
 passport.use(
   new GoogleStrategy(
@@ -14,6 +15,13 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        const channelInfo = await YoutubeService.getChannelInfo({
+          googleAccessToken: accessToken,
+          googleRefreshToken: refreshToken,
+        });
+        if (!channelInfo) {
+          return done(null, false);
+        }
         const user = await UserService.createUser({
           googleId: profile.id,
           googleAccessToken: accessToken,
@@ -24,6 +32,8 @@ passport.use(
           name: profile.displayName,
           username: profile.displayName,
           role: "admin",
+          ytChannelId: channelInfo.channelId,
+          ytChannelName: channelInfo.channelName,
         });
         if (!user) {
           return done(null, false);

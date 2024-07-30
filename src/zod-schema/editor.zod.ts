@@ -6,6 +6,7 @@ export const editorResetPasswordSchema = z.object({
 
 export const editorCreateSchema = z.object({
   name: z.string(),
+  email: z.string().email(),
 });
 
 export const editorLoginSchema = z.object({

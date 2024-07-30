@@ -17,14 +17,15 @@ router.get(
   passport.authenticate("google", {
     scope: GOOGLE_SCOPES,
     accessType: "offline",
-    prompt: "consent",
   }),
   (_, res) => res.sendStatus(STATUS_CODES.OK)
 );
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
+  passport.authenticate("google", {
+    failureRedirect: `${env.ALLOWED_ORIGINS}/login`,
+  }),
   (_, res) => {
     res.redirect(env.FE_GOOGLE_REDIRECT_URL);
   }

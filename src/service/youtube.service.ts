@@ -32,6 +32,13 @@ export const YoutubeService = {
         videoId
       );
 
+      const hasRequiredScopes = await UserService.hasRequiredScopes(userId);
+      if (!hasRequiredScopes) {
+        throw new Error(
+          "You have not granted required permissions, please sign in again!"
+        );
+      }
+
       if (!userWithVideo || userWithVideo?.videos.length === 0) {
         throw new Error("Video not found");
       }
@@ -107,13 +114,11 @@ export const YoutubeService = {
             privacyStatus: visibility,
             mediaStream,
           };
-
           const auth: Partial<Express.User> = {
             googleAccessToken: userWithVideo.googleAccessToken,
             googleRefreshToken: userWithVideo.googleRefreshToken,
             googleExpiresIn: userWithVideo.googleExpiresIn,
           };
-
           YoutubeService.uploadVideoToYoutube({
             auth,
             videoDetails,
@@ -125,7 +130,8 @@ export const YoutubeService = {
                 eq(videos.videoId, video.videoId)
               );
             },
-            onFailure: async () => {
+            onFailure: async (error) => {
+              logger.error(error);
               await VideoService.updateVideo(
                 { youtubeUploadStatus: "failed" },
                 eq(videos.videoId, video.videoId)
@@ -160,7 +166,7 @@ export const YoutubeService = {
       mediaStream: ReadStream;
     };
     onSuccess: () => void;
-    onFailure: () => void;
+    onFailure: (error: any) => void;
     uploadVideoId: string;
   }) {
     const oauth2Client = new google.auth.OAuth2();
@@ -197,7 +203,44 @@ export const YoutubeService = {
     } catch (error) {
       logger.error("Error uploading video", error);
       updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
-      onFailure();
+      onFailure(error);
+      return null;
+    }
+  },
+
+  async getChannelInfo({
+    googleAccessToken,
+    googleRefreshToken,
+  }: {
+    googleAccessToken: string;
+    googleRefreshToken: string;
+  }): Promise<{
+    channelName: string;
+    channelId: string;
+  } | null> {
+    const oauth2Client = new google.auth.OAuth2();
+    oauth2Client.setCredentials({
+      access_token: googleAccessToken,
+      refresh_token: googleRefreshToken,
+    });
+    try {
+      const response = await youtube.channels.list({
+        auth: oauth2Client,
+        part: ["snippet"],
+        mine: true,
+      });
+      if (response.data.items && response.data.items.length > 0) {
+        const channelName = response.data.items[0].snippet?.title;
+        const channelId = response.data.items[0].id;
+        logger.info("YouTube Channel Name:", channelName);
+        if (!channelName || !channelId) return null;
+        return { channelName, channelId };
+      } else {
+        logger.info("No channel found for this user.");
+        return null;
+      }
+    } catch (error) {
+      logger.error("Error getting channel info", error);
       return null;
     }
   },
