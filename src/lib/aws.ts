@@ -8,6 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import env from "../env";
+import { Readable } from "stream";
 
 const s3Client = new S3Client({
   region: env.AWS_REGION,
@@ -69,6 +70,18 @@ const AWSManager = {
     } catch (error) {
       return null;
     }
+  },
+
+  async createReadStream(key: string, BucketName: string) {
+    const params = {
+      Bucket: BucketName,
+      Key: key,
+    };
+
+    const command = new GetObjectCommand(params);
+    const response = await s3Client.send(command);
+    if (!response.Body) return null;
+    return Readable.from(response.Body as Readable);
   },
 };
 
