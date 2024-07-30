@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import db from "../db/db";
 import argon2 from "argon2";
 import { editors, EditorsInsertType, Editor } from "../db/schema";
@@ -27,6 +27,9 @@ const EditorService = {
     try {
       return await db.query.editors.findFirst({
         where: eq(editors.id, editorId),
+        with: {
+          admin: { columns: { ytChannelName: true } },
+        },
         ...(columns ? { columns } : {}),
       });
     } catch (error) {
@@ -34,10 +37,10 @@ const EditorService = {
     }
   },
 
-  async getEditorByUsername(username: string) {
+  async getEditor({ username }: { username: string }) {
     try {
       return await db.query.editors.findFirst({
-        where: eq(editors.username, username),
+        where: or(eq(editors.username, username), eq(editors.email, username)),
       });
     } catch (error) {
       throw error;
@@ -47,7 +50,7 @@ const EditorService = {
   async verifyPassword(username: string, password: string) {
     try {
       const editor = await db.query.editors.findFirst({
-        where: eq(editors.username, username),
+        where: or(eq(editors.username, username), eq(editors.email, username)),
       });
       if (!editor) {
         return false;

@@ -26,6 +26,7 @@ const AuthService = {
             role: true,
             verified: true,
             profileUrlImage: true,
+            ytChannelName: true,
           },
           true
         );
@@ -37,16 +38,19 @@ const AuthService = {
         throw error;
       }
     }
-    const editor = await EditorService.getEditorById(id, {
+    const _editor = await EditorService.getEditorById(id, {
       id: true,
       name: true,
       role: true,
       verified: true,
     });
-    if (!editor) {
+    if (!_editor) {
       throw new Error("Editor not found");
     }
-    return editor;
+    return {
+      ..._editor,
+      ytChannelName: _editor.admin.ytChannelName,
+    };
   },
   async refreshGoogleAccessToken(userId: number) {
     try {

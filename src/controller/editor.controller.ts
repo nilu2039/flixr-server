@@ -9,7 +9,7 @@ export const createEditor = async (req: Request, res: Response) => {
   if (!req.user) {
     return res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
   }
-  const { name } = req.body as EditorCreate;
+  const { name, email } = req.body as EditorCreate;
   const password = uuid();
   const username = uuid();
   const hashedPassword = await argon2.hash(password);
@@ -19,6 +19,7 @@ export const createEditor = async (req: Request, res: Response) => {
       username,
       password: hashedPassword,
       adminId: req.user.id,
+      email,
     });
     res.sendSuccess({ status: "success", username, password });
   } catch (error) {
