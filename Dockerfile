@@ -21,4 +21,8 @@ RUN pnpm build
 
 FROM base AS prod
 
+RUN mkdir /app/src/db
+
+COPY --from=dev /app/src/db/migrate.ts /app/src/db/migrate.ts
+
 COPY --from=build /app/dist /app
