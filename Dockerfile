@@ -24,5 +24,6 @@ FROM base AS prod
 RUN mkdir /app/src/ && mkdir /app/src/db/
 
 COPY --from=dev /app/src/db/migrate.ts /app/src/db/migrate.ts
+COPY --from=dev /app/src/env.ts /app/src/env.ts
 
 COPY --from=build /app/dist /app
