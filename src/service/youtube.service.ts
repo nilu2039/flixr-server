@@ -32,6 +32,13 @@ export const YoutubeService = {
         videoId
       );
 
+      const hasRequiredScopes = await UserService.hasRequiredScopes(userId);
+      if (!hasRequiredScopes) {
+        throw new Error(
+          "You have not granted required permissions, please sign in again!"
+        );
+      }
+
       if (!userWithVideo || userWithVideo?.videos.length === 0) {
         throw new Error("Video not found");
       }
@@ -125,7 +132,8 @@ export const YoutubeService = {
                 eq(videos.videoId, video.videoId)
               );
             },
-            onFailure: async () => {
+            onFailure: async (error) => {
+              logger.error(error);
               await VideoService.updateVideo(
                 { youtubeUploadStatus: "failed" },
                 eq(videos.videoId, video.videoId)
@@ -160,7 +168,7 @@ export const YoutubeService = {
       mediaStream: ReadStream;
     };
     onSuccess: () => void;
-    onFailure: () => void;
+    onFailure: (error: any) => void;
     uploadVideoId: string;
   }) {
     const oauth2Client = new google.auth.OAuth2();
@@ -197,7 +205,7 @@ export const YoutubeService = {
     } catch (error) {
       logger.error("Error uploading video", error);
       updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
-      onFailure();
+      onFailure(error);
       return null;
     }
   },

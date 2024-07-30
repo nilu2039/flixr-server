@@ -1,6 +1,8 @@
-import users, { User, UsersInsertType } from "../db/schema/user.schema";
-import db from "../db/db";
 import { eq } from "drizzle-orm";
+import { google } from "googleapis";
+import { GOOGLE_SCOPES } from "../constants";
+import db from "../db/db";
+import users, { User, UsersInsertType } from "../db/schema/user.schema";
 import logger from "../lib/logger";
 
 export const UserService = {
@@ -96,6 +98,43 @@ export const UserService = {
     } catch (error) {
       logger.error(error);
       return null;
+    }
+  },
+  async hasRequiredScopes(userId: number): Promise<boolean> {
+    try {
+      const user = await UserService.getUserById(userId, {
+        googleAccessToken: true,
+        googleRefreshToken: true,
+      });
+      if (!user) {
+        return false;
+      }
+      const oauth2Client = new google.auth.OAuth2();
+      oauth2Client.setCredentials({
+        access_token: user.googleAccessToken,
+        refresh_token: user.googleRefreshToken,
+      });
+      if (!oauth2Client.credentials.access_token) {
+        return false;
+      }
+      const tokenInfo = await google.oauth2("v2").tokeninfo({
+        access_token: oauth2Client.credentials.access_token,
+      });
+
+      if (!tokenInfo.data.scope) {
+        return false;
+      }
+
+      const grantedScopes = tokenInfo.data.scope.split(" ");
+      const missingScopes = GOOGLE_SCOPES.filter(
+        (scope) => !grantedScopes.includes(scope)
+      );
+      if (missingScopes.length > 0) {
+        return false;
+      }
+      return true;
+    } catch (error) {
+      return false;
     }
   },
 };
