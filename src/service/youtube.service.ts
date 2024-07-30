@@ -1,9 +1,6 @@
 import { eq } from "drizzle-orm";
-import { ReadStream } from "fs";
-import { open, unlink } from "fs/promises";
 import { google } from "googleapis";
-import { DownloaderHelper } from "node-downloader-helper";
-import path from "path";
+import internal from "stream";
 import { videos } from "../db/schema";
 import env from "../env";
 import AWSManager from "../lib/aws";
@@ -72,77 +69,58 @@ export const YoutubeService = {
         throw new Error("Video not found");
       }
 
-      const dl = new DownloaderHelper(videoUrl, "/tmp", {
-        fileName: video.fileName,
-        override: true,
-        removeOnFail: true,
-      });
-
       updateVideoUploadYoutubeStatus(uploadVideoId, "started");
-      const videoPath = path.join("/tmp", video.fileName);
 
       await VideoService.updateVideo(
         { youtubeUploadStatus: "pending" },
         eq(videos.videoId, video.videoId)
       );
 
-      dl.on("error", async (err) => {
-        logger.error("Failed to download video 1", err);
-        updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
-        await VideoService.updateVideo(
-          { youtubeUploadStatus: "failed" },
-          eq(videos.videoId, video.videoId)
+      try {
+        const s3Stream = await AWSManager.createReadStream(
+          video.s3ObjectKey,
+          env.AWS_VIDEO_UPLOAD_BUCKET.trim()
         );
-      });
-      dl.start().catch(async (err) => {
-        logger.error("Failed to download video 2", err);
-        updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
-        await VideoService.updateVideo(
-          { youtubeUploadStatus: "failed" },
-          eq(videos.videoId, video.videoId)
-        );
-      });
-      dl.on("end", async () => {
-        try {
-          const fileHandle = await open(videoPath, "r");
-          const mediaStream = fileHandle.createReadStream();
-          const videoDetails = {
-            title: video.title,
-            description: video.description,
-            tags: ["test", "video"],
-            categoryId: "22",
-            privacyStatus: visibility,
-            mediaStream,
-          };
-          const auth: Partial<Express.User> = {
-            googleAccessToken: userWithVideo.googleAccessToken,
-            googleRefreshToken: userWithVideo.googleRefreshToken,
-            googleExpiresIn: userWithVideo.googleExpiresIn,
-          };
-          YoutubeService.uploadVideoToYoutube({
-            auth,
-            videoDetails,
-            uploadVideoId,
-            onSuccess: async () => {
-              await unlink(videoPath);
-              await VideoService.updateVideo(
-                { youtubeUploadStatus: "completed" },
-                eq(videos.videoId, video.videoId)
-              );
-            },
-            onFailure: async (error) => {
-              logger.error(error);
-              await VideoService.updateVideo(
-                { youtubeUploadStatus: "failed" },
-                eq(videos.videoId, video.videoId)
-              );
-            },
-          });
-        } catch (error) {
-          updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
-          throw error;
+        if (!s3Stream) {
+          throw new Error("Failed to get video stream");
         }
-      });
+        const videoDetails = {
+          title: video.title,
+          description: video.description,
+          tags: ["test", "video"],
+          categoryId: "22",
+          privacyStatus: visibility,
+          mediaStream: s3Stream,
+        };
+        const auth: Partial<Express.User> = {
+          googleAccessToken: userWithVideo.googleAccessToken,
+          googleRefreshToken: userWithVideo.googleRefreshToken,
+          googleExpiresIn: userWithVideo.googleExpiresIn,
+        };
+        YoutubeService.uploadVideoToYoutube({
+          auth,
+          videoDetails,
+          uploadVideoId,
+          onSuccess: async () => {
+            logger.info("Video uploaded successfully");
+            await VideoService.updateVideo(
+              { youtubeUploadStatus: "completed" },
+              eq(videos.videoId, video.videoId)
+            );
+          },
+          onFailure: async (error) => {
+            logger.error(error);
+            await VideoService.updateVideo(
+              { youtubeUploadStatus: "failed" },
+              eq(videos.videoId, video.videoId)
+            );
+          },
+        });
+      } catch (error) {
+        logger.error(error);
+        updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
+        throw error;
+      }
     } catch (error) {
       updateVideoUploadYoutubeStatus(uploadVideoId, "failed");
       throw error;
@@ -163,7 +141,7 @@ export const YoutubeService = {
       tags: string[];
       categoryId: string;
       privacyStatus: string;
-      mediaStream: ReadStream;
+      mediaStream: internal.Readable;
     };
     onSuccess: () => void;
     onFailure: (error: any) => void;

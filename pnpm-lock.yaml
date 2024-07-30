@@ -59,9 +59,6 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
-      node-downloader-helper:
-        specifier: ^2.1.9
-        version: 2.1.9
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1422,11 +1419,6 @@ packages:
   node-addon-api@8.1.0:
     resolution: {integrity: sha512-yBY+qqWSv3dWKGODD6OGE6GnTX7Q2r+4+DfpqxHSHh8x0B4EKP9+wVGLS6U/AM1vxSNNmUEuIV5EGhYwPpfOwQ==}
     engines: {node: ^18 || ^20 || >= 21}
-
-  node-downloader-helper@2.1.9:
-    resolution: {integrity: sha512-FSvAol2Z8UP191sZtsUZwHIN0eGoGue3uEXGdWIH5228e9KH1YHXT7fN8Oa33UGf+FbqGTQg3sJfrRGzmVCaJA==}
-    engines: {node: '>=14.18'}
-    hasBin: true
 
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
@@ -3407,8 +3399,6 @@ snapshots:
   negotiator@0.6.3: {}
 
   node-addon-api@8.1.0: {}
-
-  node-downloader-helper@2.1.9: {}
 
   node-fetch@2.7.0:
     dependencies:
