@@ -17,6 +17,7 @@ router.get(
   passport.authenticate("google", {
     scope: GOOGLE_SCOPES,
     accessType: "offline",
+    prompt: "consent",
   }),
   (_, res) => res.sendStatus(STATUS_CODES.OK)
 );

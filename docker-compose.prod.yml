@@ -1,6 +1,6 @@
 services:
   app:
-    image: nilu2039/flixr-server:0.0.8
+    image: nilu2039/flixr-server:0.0.9
     ports:
       - ${PORT}:${PORT}
     command:
