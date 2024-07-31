@@ -22,13 +22,17 @@ const EditorService = {
 
   async getEditorById(
     editorId: number,
-    columns?: Partial<Record<keyof Editor, boolean>>
+    columns?: Partial<Record<keyof Editor, boolean>>,
+    withVideos = false
   ) {
     try {
       return await db.query.editors.findFirst({
         where: eq(editors.id, editorId),
         with: {
           admin: { columns: { ytChannelName: true } },
+          ...(withVideos && {
+            videos: true,
+          }),
         },
         ...(columns ? { columns } : {}),
       });

@@ -13,12 +13,16 @@ import {
   isSupportedContentType,
 } from "../utils/youtube.util";
 import {
+  EditVideoDetails,
   GetAllVideosQuery,
   GetVideoDetailsQuery,
   VideoStatus,
   VideoUploadPresignedUrl,
   VideoUploadStatusUpdate,
 } from "../zod-schema/video.zod";
+import { Video } from "../db/schema/video.schema";
+import EditorService from "../service/editor.service";
+import logger from "../lib/logger";
 
 export const getUploadPresignedUrl = async (req: Request, res: Response) => {
   const { contentType, title, description } =
@@ -61,6 +65,43 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
     uploaderId: req.user.id,
   });
   res.sendSuccess({ uploadUrl, videoId });
+};
+
+export const editVideoDetails = async (req: Request, res: Response) => {
+  const { videoId, title, description } = req.body as EditVideoDetails;
+  if (!req.user) {
+    res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
+    return;
+  }
+  let video: Video | null | undefined = null;
+  if (req.user.role === "admin") {
+    const res = await UserService.getUserByIdWithVideo(req.user.id, videoId);
+    video = res?.videos.find((v) => v.videoId === videoId);
+  }
+  if (req.user.role === "editor") {
+    const res = await EditorService.getEditorById(req.user.id, undefined, true);
+    video = res?.videos.find((v) => v.videoId === videoId);
+  }
+  if (!video) {
+    res.sendError("Video not found", STATUS_CODES.NOT_FOUND);
+    return;
+  }
+  try {
+    const uploadUrl = await AWSManager.getSignedUrlForUpload(
+      video.s3ObjectKey,
+      video.contentType,
+      env.AWS_VIDEO_UPLOAD_BUCKET
+    );
+    await VideoService.updateVideo(
+      { title, description },
+      eq(videos.videoId, video.videoId)
+    );
+    res.sendSuccess({ title, description, uploadUrl });
+  } catch (error) {
+    logger.error("Error updating video details", error);
+    res.sendError("Details not updated", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
 };
 
 export const updateVideoUploadStatus = async (req: Request, res: Response) => {

@@ -1,23 +1,25 @@
 import { Router } from "express";
 import {
-  getUploadPresignedUrl,
-  updateVideoUploadStatus,
-  updateVideoStatus,
+  editVideoDetails,
   getAllVideos,
+  getUploadPresignedUrl,
   getVideoDetails,
+  updateVideoStatus,
+  updateVideoUploadStatus,
 } from "../controller/video.controller";
+import { idAdminOrEditor, isAdmin } from "../middleware/auth.middleware";
 import {
   validatePostBody,
   validateQuery,
 } from "../middleware/validate.middleware";
 import {
-  videoUploadStatusUpdateSchema,
-  videoUploadPresignedBodySchema,
-  videoStatusSchema,
+  editVideoDetailsSchema,
   getAllVideosQuerySchema,
   getVideoDetailsQuerySchema,
+  videoStatusSchema,
+  videoUploadPresignedBodySchema,
+  videoUploadStatusUpdateSchema,
 } from "../zod-schema/video.zod";
-import { idAdminOrEditor, isAdmin } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -40,6 +42,13 @@ router.post(
   validatePostBody(videoUploadPresignedBodySchema),
   idAdminOrEditor,
   getUploadPresignedUrl
+);
+
+router.post(
+  "/edit-video-details",
+  idAdminOrEditor,
+  validatePostBody(editVideoDetailsSchema),
+  editVideoDetails
 );
 
 router.post(
