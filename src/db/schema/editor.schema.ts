@@ -17,7 +17,9 @@ const editors = pgTable("editors", {
   password: varchar("password", { length: 256 }).notNull(),
   name: varchar("name", { length: 256 }),
   role: varchar("role", { length: 256 }).notNull().default("editor"),
-  adminId: integer("admin_id").notNull(),
+  adminId: integer("admin_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   verified: boolean("verified").notNull().default(false),
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { mode: "date" })
