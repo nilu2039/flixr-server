@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const videoUploadPresignedBodySchema = z.object({
-  contentType: z.string(),
-  title: z.string(),
-  description: z.string(),
+  contentType: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().min(1),
 });
 
 export const videoUploadStatusUpdateSchema = z.object({
@@ -14,7 +14,7 @@ export const videoUploadStatusUpdateSchema = z.object({
 
 export const videoStatusSchema = z.object({
   status: z.enum(["draft", "accepted", "rejected"]),
-  videoId: z.string(),
+  videoId: z.string().min(1),
 });
 
 export const getAllVideosQuerySchema = z.object({
@@ -22,7 +22,13 @@ export const getAllVideosQuerySchema = z.object({
 });
 
 export const getVideoDetailsQuerySchema = z.object({
+  videoId: z.string().min(1),
+});
+
+export const editVideoDetailsSchema = z.object({
   videoId: z.string(),
+  title: z.string().optional(),
+  description: z.string().optional(),
 });
 
 export type VideoStatus = z.infer<typeof videoStatusSchema>;
@@ -38,3 +44,5 @@ export type VideoUploadStatusUpdate = z.infer<
 export type GetAllVideosQuery = z.infer<typeof getAllVideosQuerySchema>;
 
 export type GetVideoDetailsQuery = z.infer<typeof getVideoDetailsQuerySchema>;
+
+export type EditVideoDetails = z.infer<typeof editVideoDetailsSchema>;

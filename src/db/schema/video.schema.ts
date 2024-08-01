@@ -20,8 +20,12 @@ const videos = pgTable("videos", {
   contentType: varchar("content_type", { length: 256 }).notNull(),
   fileName: varchar("file_name", { length: 256 }).notNull(),
   fileSize: bigint("file_size", { mode: "number" }).notNull().default(0),
-  adminId: integer("admin_id").notNull(),
-  editorId: integer("editor_id"),
+  adminId: integer("admin_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  editorId: integer("editor_id").references(() => editors.id, {
+    onDelete: "cascade",
+  }),
   uploadStatus: text("upload_status", {
     enum: ["idle", "pending", "completed", "failed"],
   })
