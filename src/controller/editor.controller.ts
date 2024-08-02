@@ -4,6 +4,7 @@ import argon2 from "argon2";
 import EditorService from "../service/editor.service";
 import STATUS_CODES from "../lib/http-status-codes";
 import { EditorCreate, EditorResetPassword } from "../zod-schema/editor.zod";
+import logger from "../lib/logger";
 
 export const createEditor = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -23,6 +24,10 @@ export const createEditor = async (req: Request, res: Response) => {
     });
     res.sendSuccess({ status: "success", username, password });
   } catch (error) {
+    logger.error(error);
+    if (error?.code === "23505") {
+      return res.sendError("Email already exists", STATUS_CODES.BAD_REQUEST);
+    }
     res.sendError("Failed to create editor", STATUS_CODES.BAD_REQUEST);
   }
 };
