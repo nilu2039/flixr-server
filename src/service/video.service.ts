@@ -1,4 +1,4 @@
-import { eq, SQL, sql } from "drizzle-orm";
+import { desc, eq, SQL, sql } from "drizzle-orm";
 import db from "../db/db";
 import videos, { Video, VideosInsertType } from "../db/schema/video.schema";
 import AWSManager from "../lib/aws";
@@ -23,7 +23,7 @@ const VideoService = {
     withOwner?: boolean;
   }): Promise<Partial<Video>[] | null> {
     try {
-      const data = await db.query.videos.findMany({
+      const _data = await db.query.videos.findMany({
         ...(where ? { where } : {}),
         columns: {
           s3BucketName: false,
@@ -51,8 +51,16 @@ const VideoService = {
           END
         `.as("uploader"),
         },
+        orderBy: [desc(videos.updatedAt)],
       });
-      return data;
+      const data = _data.map(async (d) => {
+        const thumbnailUrl = await AWSManager.getSignedUrlForDownload(
+          d.thumbnails3ObjectKey,
+          env.AWS_VIDEO_UPLOAD_BUCKET
+        );
+        return { ...d, thumbnailUrl };
+      });
+      return Promise.all(data);
     } catch (error) {
       throw error;
     }
