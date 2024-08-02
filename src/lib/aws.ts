@@ -19,11 +19,16 @@ const s3Client = new S3Client({
 });
 
 const AWSManager = {
-  async getSignedUrlForUpload(
-    key: string,
-    contentType: string,
-    BucketName: string
-  ): Promise<string> {
+  async getSignedUrlForUpload({
+    key,
+    contentType,
+    BucketName,
+  }: {
+    key?: string | null;
+    contentType?: string | null;
+    BucketName?: string;
+  }): Promise<string | null> {
+    if (!key || !contentType || !BucketName) return null;
     const params: PutObjectCommandInput = {
       Bucket: BucketName,
       Key: key.trim(),

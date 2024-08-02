@@ -1,7 +1,8 @@
 import { z } from "zod";
 
 export const videoUploadPresignedBodySchema = z.object({
-  contentType: z.string().min(1),
+  videoContentType: z.string().min(1),
+  thumbnailContentType: z.string().min(1).optional(),
   title: z.string().min(1),
   description: z.string().min(1),
 });

@@ -17,7 +17,13 @@ const videos = pgTable("videos", {
   description: text("description").notNull(),
   s3BucketName: varchar("s3_bucket_name", { length: 256 }).notNull(),
   s3ObjectKey: varchar("s3_object_key", { length: 256 }).notNull().unique(),
+  thumbnails3ObjectKey: varchar("thumbnail_s3_object_key", {
+    length: 256,
+  }),
   contentType: varchar("content_type", { length: 256 }).notNull(),
+  thumbnailContentType: varchar("thumbnail_content_type", {
+    length: 256,
+  }),
   fileName: varchar("file_name", { length: 256 }).notNull(),
   fileSize: bigint("file_size", { mode: "number" }).notNull().default(0),
   adminId: integer("admin_id")

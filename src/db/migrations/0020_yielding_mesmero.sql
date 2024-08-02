@@ -1,0 +1,1 @@
+ALTER TABLE "videos" ADD COLUMN "thumbnail_content_type" varchar(256);
