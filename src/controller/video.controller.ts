@@ -10,7 +10,8 @@ import { UserService } from "../service/user.service";
 import VideoService from "../service/video.service";
 import {
   getExtensionFromContentType,
-  isSupportedContentType,
+  isSupportedThumbnailContentType,
+  isSupportedVideoContentType,
 } from "../utils/youtube.util";
 import {
   EditVideoDetails,
@@ -25,17 +26,37 @@ import EditorService from "../service/editor.service";
 import logger from "../lib/logger";
 
 export const getUploadPresignedUrl = async (req: Request, res: Response) => {
-  const { contentType, title, description } =
+  const { videoContentType, title, description, thumbnailContentType } =
     req.body as VideoUploadPresignedUrl;
 
-  if (!isSupportedContentType(contentType)) {
+  if (!isSupportedVideoContentType(videoContentType)) {
     res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
     return;
   }
 
-  const fileExtension = getExtensionFromContentType(contentType);
-  if (!fileExtension) {
-    res.sendError("Invalid content type", STATUS_CODES.BAD_REQUEST);
+  if (
+    thumbnailContentType &&
+    !isSupportedThumbnailContentType(thumbnailContentType)
+  ) {
+    res.sendError("Invalid thumbnail content type", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
+
+  const videoFileExtension = getExtensionFromContentType({
+    contentType: videoContentType,
+    type: "video",
+  });
+  const thumbnailFileExtension = getExtensionFromContentType({
+    contentType: thumbnailContentType,
+    type: "thumbnail",
+  });
+  if (!videoFileExtension) {
+    res.sendError("Invalid video extension", STATUS_CODES.BAD_REQUEST);
+    return;
+  }
+
+  if (thumbnailContentType && !thumbnailFileExtension) {
+    res.sendError("Invalid thumbnail extension", STATUS_CODES.BAD_REQUEST);
     return;
   }
 
@@ -45,26 +66,35 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
 
   const { adminId, editorId } = await AuthService.getAuthId(req);
   const videoId = v4();
-  const fileName = `${videoId}.${fileExtension}`;
-  const key = `videos/${videoId}/${fileName}`;
-  const uploadUrl = await AWSManager.getSignedUrlForUpload(
-    key,
-    contentType,
-    env.AWS_VIDEO_UPLOAD_BUCKET
-  );
+  const videoFileName = `${videoId}.${videoFileExtension}`;
+  const thumbnailFileName = `thumbnail.${videoId}.${thumbnailFileExtension}`;
+  const videoKey = `videos/${videoId}/${videoFileName}`;
+  const thumbnailKey = `videos/${videoId}/${thumbnailFileName}`;
+  const videoUploadUrl = await AWSManager.getSignedUrlForUpload({
+    key: videoKey,
+    contentType: videoContentType,
+    BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
+  });
+  const thumbnailUploadUrl = await AWSManager.getSignedUrlForUpload({
+    key: thumbnailKey,
+    contentType: thumbnailContentType,
+    BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
+  });
   await VideoService.createVideo({
     videoId,
     adminId,
     s3BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
-    s3ObjectKey: key,
-    contentType,
+    s3ObjectKey: videoKey,
+    contentType: videoContentType,
+    thumbnails3ObjectKey: thumbnailKey,
+    thumbnailContentType,
     title,
     description,
-    fileName,
+    fileName: videoFileName,
     editorId,
     uploaderId: req.user.id,
   });
-  res.sendSuccess({ uploadUrl, videoId });
+  res.sendSuccess({ videoUploadUrl, videoId, thumbnailUploadUrl });
 };
 
 export const editVideoDetails = async (req: Request, res: Response) => {
@@ -87,16 +117,21 @@ export const editVideoDetails = async (req: Request, res: Response) => {
     return;
   }
   try {
-    const uploadUrl = await AWSManager.getSignedUrlForUpload(
-      video.s3ObjectKey,
-      video.contentType,
-      env.AWS_VIDEO_UPLOAD_BUCKET
-    );
+    const videoUploadUrl = await AWSManager.getSignedUrlForUpload({
+      key: video.s3ObjectKey,
+      contentType: video.contentType,
+      BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
+    });
+    const thumbnailUploadUrl = await AWSManager.getSignedUrlForUpload({
+      key: video.thumbnails3ObjectKey,
+      contentType: video.thumbnailContentType,
+      BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
+    });
     await VideoService.updateVideo(
       { title, description },
       eq(videos.videoId, video.videoId)
     );
-    res.sendSuccess({ title, description, uploadUrl });
+    res.sendSuccess({ title, description, videoUploadUrl, thumbnailUploadUrl });
   } catch (error) {
     logger.error("Error updating video details", error);
     res.sendError("Details not updated", STATUS_CODES.BAD_REQUEST);

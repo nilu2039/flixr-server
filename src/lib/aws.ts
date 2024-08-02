@@ -19,11 +19,16 @@ const s3Client = new S3Client({
 });
 
 const AWSManager = {
-  async getSignedUrlForUpload(
-    key: string,
-    contentType: string,
-    BucketName: string
-  ): Promise<string> {
+  async getSignedUrlForUpload({
+    key,
+    contentType,
+    BucketName,
+  }: {
+    key?: string | null;
+    contentType?: string | null;
+    BucketName?: string;
+  }): Promise<string | null> {
+    if (!key || !contentType || !BucketName) return null;
     const params: PutObjectCommandInput = {
       Bucket: BucketName,
       Key: key.trim(),
@@ -36,9 +41,11 @@ const AWSManager = {
   },
 
   async getSignedUrlForDownload(
-    key: string,
+    key: string | null,
     BucketName: string
   ): Promise<string | null> {
+    if (!key) return null;
+
     const params = {
       Bucket: BucketName,
       Key: key,
@@ -72,12 +79,12 @@ const AWSManager = {
     }
   },
 
-  async createReadStream(key: string, BucketName: string) {
+  async createReadStream(key: string | null, BucketName: string) {
+    if (!key) return null;
     const params = {
       Bucket: BucketName,
       Key: key,
     };
-
     const command = new GetObjectCommand(params);
     const response = await s3Client.send(command);
     if (!response.Body) return null;

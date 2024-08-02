@@ -77,20 +77,23 @@ export const YoutubeService = {
       );
 
       try {
-        const s3Stream = await AWSManager.createReadStream(
+        const s3VideoStream = await AWSManager.createReadStream(
           video.s3ObjectKey,
           env.AWS_VIDEO_UPLOAD_BUCKET.trim()
         );
-        if (!s3Stream) {
+        const s3ThumbnailStream = await AWSManager.createReadStream(
+          video.thumbnails3ObjectKey,
+          env.AWS_VIDEO_UPLOAD_BUCKET.trim()
+        );
+        if (!s3VideoStream) {
           throw new Error("Failed to get video stream");
         }
         const videoDetails = {
           title: video.title,
           description: video.description,
-          tags: ["test", "video"],
           categoryId: "22",
           privacyStatus: visibility,
-          mediaStream: s3Stream,
+          mediaStream: s3VideoStream,
         };
         const auth: Partial<Express.User> = {
           googleAccessToken: userWithVideo.googleAccessToken,
@@ -101,6 +104,7 @@ export const YoutubeService = {
           auth,
           videoDetails,
           uploadVideoId,
+          s3ThumbnailStream,
           onSuccess: async () => {
             logger.info("Video uploaded successfully");
             await VideoService.updateVideo(
@@ -131,6 +135,7 @@ export const YoutubeService = {
     auth,
     uploadVideoId,
     videoDetails,
+    s3ThumbnailStream,
     onSuccess = () => {},
     onFailure = () => {},
   }: {
@@ -138,11 +143,11 @@ export const YoutubeService = {
     videoDetails: {
       title: string;
       description: string;
-      tags: string[];
       categoryId: string;
       privacyStatus: string;
       mediaStream: internal.Readable;
     };
+    s3ThumbnailStream: internal.Readable | null;
     onSuccess: () => void;
     onFailure: (error: any) => void;
     uploadVideoId: string;
@@ -163,7 +168,6 @@ export const YoutubeService = {
           snippet: {
             title: videoDetails.title,
             description: videoDetails.description,
-            tags: videoDetails.tags,
             categoryId: videoDetails.categoryId,
           },
           status: {
@@ -172,6 +176,13 @@ export const YoutubeService = {
         },
         media: {
           body: videoDetails.mediaStream,
+        },
+      });
+      await youtube.thumbnails.set({
+        auth: oauth2Client,
+        videoId: res.data.id ?? "",
+        media: {
+          body: s3ThumbnailStream,
         },
       });
       logger.info("Video uploaded", res.data.id);

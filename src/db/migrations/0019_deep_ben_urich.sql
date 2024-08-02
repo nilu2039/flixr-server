@@ -1,0 +1,1 @@
+ALTER TABLE "videos" ADD COLUMN "thumbnail_s3_object_key" varchar(256);

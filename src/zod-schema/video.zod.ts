@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 export const videoUploadPresignedBodySchema = z.object({
-  contentType: z.string().min(1),
-  title: z.string().min(1),
-  description: z.string().min(1),
+  videoContentType: z.string().min(1),
+  thumbnailContentType: z.string().min(1).optional(),
+  title: z.string().min(1).max(100),
+  description: z.string().min(1).max(5000),
 });
 
 export const videoUploadStatusUpdateSchema = z.object({
@@ -27,8 +28,8 @@ export const getVideoDetailsQuerySchema = z.object({
 
 export const editVideoDetailsSchema = z.object({
   videoId: z.string(),
-  title: z.string().optional(),
-  description: z.string().optional(),
+  title: z.string().min(1).max(100).optional(),
+  description: z.string().min(1).max(5000).optional(),
 });
 
 export type VideoStatus = z.infer<typeof videoStatusSchema>;
