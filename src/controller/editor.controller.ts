@@ -5,6 +5,7 @@ import EditorService from "../service/editor.service";
 import STATUS_CODES from "../lib/http-status-codes";
 import { EditorCreate, EditorResetPassword } from "../zod-schema/editor.zod";
 import logger from "../lib/logger";
+import redisClient from "../lib/redis";
 
 export const createEditor = async (req: Request, res: Response) => {
   if (!req.user) {
@@ -43,6 +44,7 @@ export const resetEditorPassword = async (req: Request, res: Response) => {
       password: hashedPassword,
       verified: true,
     });
+    redisClient.del(`editor:${req.user.id}`);
     res.sendSuccess({ status: "success" });
   } catch (error) {
     res.sendError("Failed to reset password", STATUS_CODES.BAD_REQUEST);

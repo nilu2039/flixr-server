@@ -7,6 +7,7 @@ import db from "../db/db";
 import { eq } from "drizzle-orm";
 import { editors } from "../db/schema";
 import EditorService from "./editor.service";
+import redisClient from "../lib/redis";
 
 const oauth2Client = new google.auth.OAuth2(
   env.GOOGLE_CLIENT_ID,
@@ -17,6 +18,10 @@ const oauth2Client = new google.auth.OAuth2(
 const AuthService = {
   async me(id: number, role: "admin" | "editor") {
     if (role === "admin") {
+      const cachedUser = await redisClient.get(`user:${id}`);
+      if (cachedUser) {
+        return JSON.parse(cachedUser);
+      }
       try {
         const user = await UserService.getUserById(
           id,
@@ -33,10 +38,15 @@ const AuthService = {
         if (!user) {
           throw new Error("User not found");
         }
+        redisClient.set(`user:${id}`, JSON.stringify(user), "EX", 60 * 60);
         return user;
       } catch (error) {
         throw error;
       }
+    }
+    const cachedEditor = await redisClient.get(`editor:${id}`);
+    if (cachedEditor) {
+      return JSON.parse(cachedEditor);
     }
     const _editor = await EditorService.getEditorById(id, {
       id: true,
@@ -47,10 +57,12 @@ const AuthService = {
     if (!_editor) {
       throw new Error("Editor not found");
     }
-    return {
+    const res = {
       ..._editor,
       ytChannelName: _editor.admin.ytChannelName,
     };
+    redisClient.set(`editor:${id}`, JSON.stringify(res), "EX", 60 * 60);
+    return res;
   },
   async refreshGoogleAccessToken(userId: number) {
     try {
