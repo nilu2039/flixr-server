@@ -30,6 +30,7 @@ export const editVideoDetailsSchema = z.object({
   videoId: z.string(),
   title: z.string().min(1).max(100).optional(),
   description: z.string().min(1).max(5000).optional(),
+  thumbnailContentType: z.string().min(1).optional(),
 });
 
 export type VideoStatus = z.infer<typeof videoStatusSchema>;

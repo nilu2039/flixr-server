@@ -98,7 +98,8 @@ export const getUploadPresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const editVideoDetails = async (req: Request, res: Response) => {
-  const { videoId, title, description } = req.body as EditVideoDetails;
+  const { videoId, title, description, thumbnailContentType } =
+    req.body as EditVideoDetails;
   if (!req.user) {
     res.sendError("Unauthorized", STATUS_CODES.UNAUTHORIZED);
     return;
@@ -116,17 +117,54 @@ export const editVideoDetails = async (req: Request, res: Response) => {
     res.sendError("Video not found", STATUS_CODES.NOT_FOUND);
     return;
   }
+  let thumbnailUploadUrl: string | null = null;
   try {
+    if (
+      thumbnailContentType &&
+      video.thumbnailContentType !== thumbnailContentType
+    ) {
+      if (!isSupportedThumbnailContentType(thumbnailContentType)) {
+        res.sendError(
+          "Invalid thumbnail content type",
+          STATUS_CODES.BAD_REQUEST
+        );
+        return;
+      }
+      const thumbnailFileExtension = getExtensionFromContentType({
+        contentType: thumbnailContentType,
+        type: "thumbnail",
+      });
+      if (!thumbnailFileExtension) {
+        res.sendError("Invalid thumbnail extension", STATUS_CODES.BAD_REQUEST);
+        return;
+      }
+      const thumbnailFileName = `thumbnail.${video.videoId}.${thumbnailFileExtension}`;
+      const thumbnailKey = `videos/${video.videoId}/${thumbnailFileName}`;
+      thumbnailUploadUrl = await AWSManager.getSignedUrlForUpload({
+        key: thumbnailKey,
+        contentType: thumbnailContentType,
+        BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
+      });
+      await VideoService.updateVideo(
+        {
+          thumbnails3ObjectKey: thumbnailKey,
+          thumbnailContentType,
+        },
+        eq(videos.videoId, video.videoId)
+      );
+    } else {
+      thumbnailUploadUrl = await AWSManager.getSignedUrlForUpload({
+        key: video.thumbnails3ObjectKey,
+        contentType: video.thumbnailContentType,
+        BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
+      });
+    }
     const videoUploadUrl = await AWSManager.getSignedUrlForUpload({
       key: video.s3ObjectKey,
       contentType: video.contentType,
       BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
     });
-    const thumbnailUploadUrl = await AWSManager.getSignedUrlForUpload({
-      key: video.thumbnails3ObjectKey,
-      contentType: video.thumbnailContentType,
-      BucketName: env.AWS_VIDEO_UPLOAD_BUCKET,
-    });
+
     await VideoService.updateVideo(
       { title, description },
       eq(videos.videoId, video.videoId)
